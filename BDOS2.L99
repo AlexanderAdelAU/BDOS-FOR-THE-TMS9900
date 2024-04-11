@@ -1,0 +1,1242 @@
+                        ;
+                        ;---------------------------------------------------------
+                        ;
+                        ;	BDOS FOR THE 9900	
+                        ;
+                        ;	WRITTEN	BY A.CAMERON 
+                        ;
+                        ;	DURING JULY 1983.
+                        
+                        ;	2019	BDOS IS CONFIGURED TO SHARE CALLING PROGRAMME WORKSPACE AND STACK
+                        ;		THAT IS IT DOES NOT DEFINE ITS OWN STACK
+                        ;
+                        ;
+                        ;-----------------------------------------------------------
+                        ;
+                        ; DEFINE XOP FUNCTIONS
+                        ; THESE XOP ARE DEFINED IN THE MONITOR.
+                        ; BECAUSE THE XOP WORKSPACES OVERLAP,
+                        ; THEN R0 TO R7 ARE SHARED WHEN A CALL FUNCTION OCCURS.
+                        ;
+                        ;
+                        ;
+                        ;
+                        ;	DEFINE SOME XOP'S DEFINED IN MONITOR
+                        ;
+                        	DXOP	PUSHREG,4
+                        	DXOP	POPREG,5
+                        	DXOP	CALL,6
+                        	DXOP	RET,7
+                        	DXOP	PUSH,8
+                        	DXOP	POP,9
+                        ;	DXOP	WHEX,10		;WRITE OUT A 16 BIT HEX VALUE
+                        ;	DXOP	RHEX,11		;READ IN A 16 BIT HEX VALUE
+                        ;	DXOP	WRITE,12		;WRITE CHAR IN MSB
+                        ;	DXOP	READ,13		;READ CHAR IN MSB
+                        ;	DXOP	MESG,14		;OUTPUT NULL TERMINATED MESSAGE
+                        ;
+                        ;	REGISTER EQUATES
+                        ;
+  0000                  R0	EQU	0
+  0001                  R1	EQU	1
+  0002                  R2	EQU	2
+  0003                  R3	EQU	3
+  0004                  R4	EQU	4
+  0005                  R5	EQU	5
+  0006                  R6	EQU	6
+  0007                  R7	EQU	7
+  0008                  R8	EQU	8
+                        
+                        ;
+                        ; OPERATING SYSTEM EQUATES
+                        ;
+  F000                  MONITOR	EQU	0F000H
+  D100                  BDOS	EQU	0D100H
+                        ;		;
+  D100                  	AORG	BDOS
+                        ;
+                        ; BDOS ENTRY POINT;  BDOS IS CALLED VIA XOP CALL SO THAT
+                        ;
+  D100   0A12           	SLA	R2,1		;ADJUST FOR JUMP
+  D102   0282 0050      	CI	R2,2*40		;MAKE SURE IT A LEGAL VALUE
+  D106   1B2C           	JH	EXIT	
+  D108   C022 D10E      	MOV	@FUN00(R2),R0
+  D10C   0450           	B	*R0
+                        ;
+                        
+                        ;#define GETPOS   36  /* get number of current sector */
+                        ;#define GOCPM    00  /* go to CP/M */
+                        ;#define LSTOUT   05  /* list output */
+                        ;#define POSEND   35  /* position file to end */
+                        ;#define RDRINP   03  /* reader input */
+                        
+                        
+                        ;
+                        ;	JUMP TABLE - ENTER WITH VALUE IN R3
+                        ;
+  D10E   D17E           FUN00	WORD	BDOS0			;WARM BOOT		
+  D110   D194           FUN01	WORD	CIN			;CONSOLE INPUT
+  D112   D18A           FUN02	WORD	COUT	 		;CONSOLE OUTPUT (OUTPUT LSB OF R3)
+  D114   D160           FUN03	WORD	EXIT	
+  D116   D160           FUN04	WORD	EXIT	
+  D118   D160           FUN05	WORD	EXIT	
+  D11A   D19C           FUN06	WORD	DCONIO			;DIRECT CONSOLE IO		
+  D11C   D160           FUN07	WORD	EXIT	 
+  D11E   D160           FUN08	WORD	EXIT	
+  D120   D160           FUN09	WORD	EXIT	
+  D122   D160           FUN10	WORD	EXIT	
+  D124   D160           FUN11	WORD	EXIT	
+  D126   D160           FUN12	WORD	EXIT	
+  D128   D160           FUN13	WORD	EXIT	
+  D12A   D1A6           FUN14	WORD	DSKFUN			;SELECT A DISK 
+  D12C   D1C6           FUN15	WORD	FOPEN	 		;OPEN A FILE
+  D12E   D206           FUN16	WORD	FCLOSE	 		;CLOSE A FILE
+  D130   D316           FUN17	WORD	SEARCH1	 		;LOOK FOR A FILE
+  D132   D326           FUN18	WORD	SEARCH2			;SEARCH NEXT
+  D134   D40E           FUN19	WORD	ERAFIL	 		;ERASE A FILE
+  D136   D294           FUN20	WORD	RDSEQ	 		;READ SQUENTIAL
+  D138   D230           FUN21	WORD	WRSEQ	 		;WRITE SQUENTIAL
+  D13A   D382           FUN22	WORD	MAKFIL	 		;MAKE A FILE
+  D13C   D3EC           FUN23	WORD	RENAME			;RENAME A FILE	
+  D13E   D160           FUN24	WORD	EXIT	
+  D140   D1B0           FUN25	WORD	CDFUNC			;RETURN CURRENT DISK
+  D142   D1B6           FUN26	WORD	DMAFUN			;SET DMA ADDRESS
+  D144   D160           FUN27	WORD	EXIT	 		;
+  D146   D160           FUN28	WORD	EXIT	 		;
+  D148   D160           FUN29	WORD	EXIT	 		;
+  D14A   D160           FUN30	WORD	EXIT	 		;
+  D14C   D160           FUN31	WORD	EXIT	 		;
+  D14E   D160           FUN32	WORD	EXIT	 		;
+  D150   D2CA           FUN33	WORD	RDRND	 		;READ A RANDOM RECORD
+  D152   D2E0           FUN34	WORD	WRRND	 		;WRITE A RANDOM RECORD
+  D154   D32E           FUN35	WORD	GETSIZ			;GET FILE SIZE
+  D156   D340           FUN36	WORD	SETREL			;SET RELATIVE RECORD
+  D158   D160           FUN37	WORD	EXIT
+  D15A   D160           FUN38	WORD	EXIT
+  D15C   D160           FUN39	WORD	EXIT
+  D15E   D160           FUN40	WORD	EXIT
+  D160   0701           EXIT	SETO	R1			;ERROR 
+  D162   2DC0           	RET
+                        
+                        ;
+                        ; BIOS EQUATES
+                        ;
+                        ;
+                        ;TEMPORARY TESTING ADDRESS TO MIMIC MONITOR BEING AT LOCATION F000
+  0086                  MON_PTR	EQU	086H			;LOW MEMORY POINTER TO MONITOR
+                        ;
+                        ;	BIOS VECTORS ARRANGED AS N*L WHERE
+                        ;
+                        ;	N IS THE NTH VECTOR IN THE MONITOR, AND
+                        ;	L IS THE NUMBER OF BYTES PER VECTOR
+                        ;
+                        ;MCONIN
+  F008                  MCONIN	EQU	MONITOR+2*4	;CONSOLE IN
+  F00C                  MCONOUT	EQU	MONITOR+3*4	;CONSOLE OUT
+  F010                  MSELDSK	EQU	MONITOR+4*4	;SET CURRENT LOGGED DRIVE
+  F01C                  MRDREC	EQU	MONITOR+7*4	;READ A STANDARD RECOR0D
+  F020                  MWRREC	EQU	MONITOR+8*4	;WRITE A STANDARD RECORD
+  F014                  MRECAL	EQU	MONITOR+5*4
+  F018                  MSEEK	EQU	MONITOR+6*4
+  F024                  MRDID	EQU	MONITOR+9*4
+  F028                  MWBOOT	EQU	MONITOR+10*4		;WARM BOOT
+                        ;
+                        ;************************************************************************************************************
+                        ;
+                        ;	FCB EQUATES
+                        ;
+                        ;	THE FCB CONSISTS OF 32 BYTES OF DATA:
+                        ;	BYTES 0 TO 31 ARE AN EXACT COPY OF THE DIRECTORY
+                        ;
+                        ;	   
+                        ;	   BYTES	FUNCTION
+                        ;	   -----        --------
+                        ;	   0 -7	FILENAME
+                        ;	   8 -10 	FILENAME EXTENSION
+                        ;	   11	FTY  - FILE TYPE
+                        ;	   12-13	FSB  - FILE'S STARTING BLOCK
+                        ;	   14-15 	FSZ  - FILE SIZE IN RECORDS (A RECORD IS EQUIVALENT TO A SECTOR)
+                        ;	   16-17 	FLA  - FILE LOAD ADDRESS - USED TO DETERMINE WHERE FILE WILL LOAD
+                        ;	   18-19	FSZBH - FILE SIZE IN BYTES HIGH WORD
+                        ;	   20-21	FSZBL - FILE SIZE IN BYTES LOW WORD
+                        ;	   22-23 	SPARE COULD MAKE THIS DATE - DAYS FROM 1/1/1900)
+                        ;	   24-25	CBN  - FILE'S CURRENT BLOCK NUMBER
+                        ;	   26-27	CRN  - CURRENT RECORD NUMBER 
+                        ;	   28-29	RELB - RELATIVE BLOCK NUMBER
+                        ;	   30-31 	RELR - RELATIVE RECORD NUMBER FILE WILL LOAD. 
+                        ;	   32	OVERFLOW FOR RELR
+                        ;	   33 	DRIVE
+                        ;	   34-35 	LBUFCNT - NUMBER BYTES IN LAST BUFFER.  ALLOWS TO MANAGE BINARY FILES SO CPMEOF IS NOT NEEDED
+                        ;
+                        ;	
+                        ;	DISC STRUCTURE				    
+                        ;	[S1]  [S2]  [S3]  [S4]  [S5]  [S6]  [S7]  [S8] 	<-------FILES BEGIN AT BLOCK 2
+                        ;	[BOOT][BAT1][BAT2][BAT3][DIR1][DIR2][DIR3][DIR4][REC1BLK2,REC2BLK2,RECS3BLK2,REC4BLK2][REC1BLCK3...ETC]
+                        ;	<-----BLOCK 0----------><-------BLOCK 1--------><-----------BLOCK 2------------------>
+                        ;
+                        ;	EACH BLOCK IS 4 SECTORS OR 2048 Bytes
+                        ;
+                        ;	BLOCK ALLOCATION TABLE [BAT] SECTORS ARE INITIALISED TO 0, THUS AVAILABLE BLOCKS ARE INDICATED BY THE VALUE OF 0000H.
+                        ;	WITH THE LAST AVAILABLE BLOCK BEING SET TO -1 IN THE LAST BAT PAGE.
+                        ;	ALLOCATED BLOCKS HAVE A NON ZERO BLOCK NUMBER POINTING TO THE NEXT BLOCK IN THE LINK AND THE FINAL BLOCK
+                        ;	IN THE LINK INDICATED BY A BLOCK NUMBER VALUE OF FF80H WHICH IS A SIMPLE INVERSION OF THE FIRST 9 BITS
+                        ;	WHICH ARE UNUSED.
+                        ;
+                        ;	FOR EXAMPLE, BAT 1 WOULD LOOK LIKE THIS
+                        ;
+                        ;	BAT 1
+                        ;	BLOCK NUMBER	VALUE	COMMENT
+                        ;
+                        ;	[ 0		FF80   ]	BOOT SECTOR, PLUS BATs OCCUPY A SINGLE BLOCK (BLOCK 0)
+                        ;	[ 1		FF80   ]    DIRECTORY SECTORS OCCUPY A SINGLE BLOCK (BLOCK 1)
+                        ;	[ 2		0003   ]    POINTS TO NEXT BLOCK IN LINK.  FILE IS SHELL.SYS (2 BLOCKS IN SIZE)
+                        ;	[ 3		FF80   ]    LAST BLOCK IN THE FILE
+                        ;	[ 4		0005   ]    POINTS TO NEXT BLOCK IN LINK.  FILE IS BDOS.SYS (2 BLOCKS IN SIZE)
+                        ;	[ 5		FF80   ]    LAST BLOCK IN THE LINK
+                        ;	[ 6		0007   ]    TEST FILE 3 BLOCKS LONG
+                        ;	[ 7		0008   ]	2ND BLOCK
+                        ;	[ 8		FF80   ]    LAST BLOCK IN FILE
+                        ;	[ 9		0000   ]
+                        ;	[ 9		0000   ]
+                        ;		ETC
+                        ;
+                        ;	FOR THIS REASON THE FCB MUST CONTAIN THE FILE STARTING BLOCK (FSB) SO THE START  OF THE LINK
+                        ; 	CAN BE FOUND.
+                        ;
+                        ;	BAT SECTORS ARE ORGANSIED AS FOLLOWS:
+                        ;
+                        ;	BAT SECTOR 1[BLK0,BLK1,BLK2,BLK3.......BLK255]
+                        ;	BAT SECTOR 2[BLK256,BLK257,BLK258,.......BLK511]
+                        ;	BAT SECTOR 2[BLK512,BLK513,BLK514.....BLK719,-1]
+                        ;
+                        ;
+                        ;	NOTE:  CPM/TDOS OPERATES AT THE RECORD LEVEL SO THE TASK OF TDOS IS TO BE ABLE TO
+                        ;	MAP BETWEEN FILE RECORDS LOCATION WITHIN A BLOCK ON THE DISC TRACK AND SECTOR NUMBER
+                        ;
+                        ;	BAT SECTORS ARE ORGANSISED AS 3 BAT PAGES/SECTOR
+                        ;	[PAGE3][PAGE2][PAGE1][ 0 0 0 0 0 0 0 0].
+                        ;	SO THE LSB 8 BITS REPRESENT THE ACTUAL BLOCK NUMBER AND THE NEXT 3 BITS THE BAT PAGE NUMBERS
+                        ;	BAT 0 = 000, BAT 1 = 001, BAT 2 = 010 AND BAT 3 = 011.
+                        ;
+                        ;	SO SHIFTING THE BLOCK NUMBER BY 8  SHIFT COUNT AND APPLYING THE MASK 00FFH YIELDS THE PAGE NUMBER
+                        ;	TO WHICH THE BLOCK NUMBER BELONGS.
+                        ;
+                        ;**********************************************************************************************************************
+                        ;
+  0000                  NAM	EQU	0	
+  000B                  FTY	EQU	11		;TYPE 
+  0010                  FLA	EQU	16		;FILES LOAD ADDRESS
+  001A                  CRN	EQU	26	 	;NEXT RECORD TO READ/WRITE 
+  0018                  CBN	EQU	24	 	;CURRENT BLOCK NUMBER
+  001C                  RELB	EQU	28		;RANDOM ACCESS RELATIVE BLOCK NUMBER
+  001E                  RELR	EQU	30		;RELATIVE RECORD NUMBER
+  000C                  FSB	EQU	12		;FILE STARTING BLOCK
+  000E                  FSZ	EQU	14		;FILE SIZE IN SECTORS
+  0012                  FSZBH	EQU	18		;FILE SIZE IN BYTES HIGH BYTE
+  0014                  FSZBL	EQU	20		;FILE SIZE IN BYTES LOW BYTE
+                        ;
+                        ; MEDIA TYPE 00FDH
+                        ;
+  0050                  TRKDSK	EQU	80		;TRACKS PER DISK
+  0012                  SECTRK	EQU	18		;SECTORS PER TRACK
+  0200                  BYTSEC	EQU	512		;BYTES PER SECTOR
+  0004                  SECBLK	EQU	4		;SECTOR PER BLOCK THIS MEANS THERE ARE 2 BAT SECTORS
+                        				; 80*18*2/SECBLK = 720 IE 2*512 SECTORS REQUIRED
+  0001                  RSVDSEC	EQU	1		;RESERVED SECTORS FOR BOOT SECTOR
+  0002                  NSIDES	EQU	2		;NUMBER OF SIDES
+  0B40                  SECDSK	EQU	NSIDES*SECTRK*TRKDSK	;SECTORS ON DISK
+  0001                  NBATS	EQU	1		;NO OF BAT ENTRIES ie backup etc
+  0004                  NDSECT	EQU	4		;NO OF DIRECTORY SECTORS PER DISK
+  0002                  FBATSEC 	EQU	RSVDSEC+1		;FIRST BAT SECTOR  OFFSET FROM 0
+  0004                  FDIRRN	EQU	4		;FIRST DIRECTORY RECORD NUMBER ()
+  0000                  DIRTRK	EQU	0		;DIRECTORY STARTS HERE
+  0000                  BATTRK	EQU	0
+  0008                  BATSF	EQU	8		;DETERMINES THE BAT PAGE (SEE EXPLANATION ABOVE)
+                        ;BATMSK	EQU	01FFH		;BASED ON BYTSEC/2 ENTRIES PER BAT PAGE - USED IN GETBATP
+                        ;BATMSK SHOULD BE 00FF
+  00FF                  BATMSK	EQU	0FFH		;BASED ON BYTSEC/2 ENTRIES PER BAT PAGE - USED IN GETBATP
+  FF80                  LASTBLK	EQU	0FF80H		;INDICATES LAST BLOCK IN A FILE
+  0200                  BUFSIZ	EQU	BYTSEC		;DISK BUFFER SIZE
+                        ;
+  000B                  NAMSIZ	EQU	11		;FILENAME SIZE IN BYTES
+  0012                  NAMEOFF2	EQU	18		;2ND NAME OFFSET INTO FCB
+  0020                  DIRSIZ	EQU	32		;NO. OF BYTES PER ENTRY
+  0001                  RDCMD	EQU	1	 	;READ COMMAND
+  0002                  WRCMD	EQU	2	 	;WRITE COMMAND
+                        
+  FFFF                  MINUS1	EQU	-1		;USED FOR GENERAL ERROR
+  D164   3F             WILD	BYTE	'?'
+  D165   FF             ALLONES	BYTE	-1		;;USED FOR GENERAL ERROR
+  D166                  	EVEN
+                        ;
+  D166   0000           DISK	WORD	0		;CURRENTLY SELECTED DISK LS BYTE USED
+  D168   0000           CAB	WORD	0	 	;CURRENTLY ALLOCATED BLOCK NUMBER
+  D16A   0000           CBP   	WORD	0		;CURRENT BAT LOCATION POINTER
+  D16C   0000           CBO	WORD	0		;CURRENT OFFSET INTO BLOCK
+  D16E   FFFF           CBSECT	WORD	-1		;CURRENT BAT SECTOR IN MEMORY
+  D170   0000           DIRENT	WORD	0		;USED IN DIRECTORY SEARCH
+  D172   D84A           ADDR	WORD	DIRBUFF		;CURRENT DMA ADDRESS
+  D174   0000           IOPTR	WORD	0		;CURRENT IOPTR OR DMA ADDRESS FOR MONITOR
+  D176   0000           TRACK	WORD	0
+  D178   0000           SECTOR	WORD	0
+  D17A   0000           CDSECT	WORD	0	 	;CURRENT DIRECTORY SECTOR
+  D17C   0000           CCMD	WORD    0	 		;CURRENT COMMAND
+                        ;
+                        ;******************************
+                        ;
+                        ;	WARM BOOT INTERCEPT
+                        ;
+                        ;*******************************
+                        ;
+  D17E   2DC0           BDOS0	RET
+  D180   04C0           	CLR	R0			;CLEAR CHANGE AND WRITE FLAGS IN BM
+  D182   04E0 D648      	CLR	@BATCHG			;ZERO CAUSES A BATTO BE READ IN
+  D186   0460 F028      	B	@MWBOOT			;CALL MONITOR
+                        ;
+                        ;*******************************
+                        ;
+                        ;	CONSOLE OUTPUT
+                        ;	CHAR IN R3 LSB 
+                        ;********************************
+                        ;
+                        ;
+  D18A   06C3           COUT	SWPB	R3			;MOVE CHAR TO UPPER MSB FOR MCONOUT
+  D18C   D083           	MOVB	R3,R2	 		;CHAR IN MSB OF R2
+  D18E   2DA0 F00C      	CALL	@MCONOUT
+  D192   2DC0           	RET	
+                        ;
+                        ;********************************
+                        ;
+                        ;	CONSOLE INPUT INTO LSB OF R1
+                        ;	NOTE ALL OTHER SYSTEMS USE MSB
+                        ;
+                        ;********************************
+                        ;
+                        CIN	;MOV	@MON_PTR,R0		;MONITOR ADDRESS
+                        	;AI	R0, MCONIN			;ADD THE OFFSET INTO THE MONITOR
+  D194   2DA0 F008      	CALL	@MCONIN		;(R0)			;INPUT CHAR IN R1
+  D198   06C1           	SWPB	R1
+  D19A   2DC0           	RET				;RETURN CHAR IN MSB OF R1
+                        ;
+                        ;-----------------------------------
+                        ;
+                        ;  DIRECT CONSOLE IO - BYPASS ANY CHARACTER
+                        ;  CHECKING.
+                        ;
+                        ;  IF R3 = FF00H THEN INPUT A CHAR
+                        ;  IF R3 = IS LESS THAN 00FFH THEN OUTPUT THE CHAR IN MSB
+                        ;
+                        ;-----------------------------------------------------
+                        ;
+  D19C   D020 D165      DCONIO	MOVB	@ALLONES,R0
+  D1A0   9003           	CB	R3,R0
+  D1A2   13F8           	JEQ	CIN
+  D1A4   10F2           	JMP	COUT
+                        ;
+                        ;*************************
+                        ;
+                        ;	SELECT A DISK
+                        ;
+                        ;*************************
+                        ;
+  D1A6   C083           DSKFUN	MOV	R3,R2	 		;FOR MONITOR
+  D1A8   C803 D166      	MOV	R3,@DISK
+  D1AC   0460 F010      	B	@MSELDSK
+                        
+                        ;
+                        ;*************************
+                        ;
+                        ;	GET CURRENT DISK
+                        ;       RETURN IN MSB OF R1
+                        ;
+                        ;*************************
+                        ;
+  D1B0   C060 D166      CDFUNC	MOV	@DISK,R1	 		;FOR MONITOR
+  D1B4   2DC0           	RET
+                        
+                        ;******************************
+                        ;
+                        ;	BDOS SET THE DMA ADDRESS
+                        ;
+                        ;******************************
+                        ;
+                        DMAFUN
+  D1B6   C803 D172      	MOV	R3,@ADDR		;COPY FOR WRSEQ
+  D1BA   C803 D174      	MOV	R3,@IOPTR
+  D1BE   2DC0           	RET
+                        ;******************************
+                        ;
+                        ;	MONITOR SET THE DMA ADDRESS IN R2
+                        ;
+                        ;******************************
+                        ;
+  D1C0   C802 D174      _SETDMA	MOV	R2,@IOPTR
+  D1C4   2DC0           	RET
+                        ;
+                        ;--------------------------------------------------------------------------
+                        ;
+                        ;	OPEN A FILE (FUNCTION 15)
+                        ;
+                        ;	R3 -> FCB
+                        ;
+                        ;	THIS FUNCION TRANSFERS ALL THE FILE'S  DIRECTORY DATA
+                        ;	TO THE FCB.  IF THE FILE IS NOT FOUND -1 IS RETURNED IN
+                        ;	REGISTER R1. NOTE THAT THIS FUNCTION WILL NOT CREATE AN
+                        ;	ENTRY IF ONE DOESN'T EXIST. 'MAKEFIL(FUNCTION 22) MUST
+                        ;	FIRST BE CALLED, HOWEVER IF 'MAKEFIL' IS CALLED THEN
+                        ;	OPEN DOES NOT NEED TO BE CALLED EXPLICITLY IN THIS 
+                        ;	INSTANCE.
+                        ;
+                        ;
+                        ;----------------------------------------------------------------------------
+                        ;
+  D1C6   C203           FOPEN:	MOV	R3,R8		;COPY FCB POINTER FOR INTERNAL USE
+  D1C8   2DA0 D316      	CALL	@SEARCH1		;OPEN THE DIRECTORY
+  D1CC   C041           	MOV	R1,R1		;SUCCESSFUL OPEN ?
+  D1CE   1119           	JLT	OPENA	
+  D1D0   C048           	MOV	R8,R1
+  D1D2   C083           	MOV	R3,R2		;DONT TOUCH DIRECTORY POINTER
+  D1D4   0221 000B      	AI	R1,NAMSIZ 		;POINT TO FDE
+  D1D8   0222 000B      	AI	R2,NAMSIZ		;R2 -> DIRECTORY ENTRY
+  D1DC   0200 0015      	LI	R0,DIRSIZ-NAMSIZ	;NO OF BYTES TO TRANSFER
+  D1E0   DC72           OPENB:	MOVB	*R2+,*R1+		;TRANSFER ENTRIES
+  D1E2   0600           	DEC	R0
+  D1E4   16FD           	JNE	OPENB
+                        ;
+                        ;  'MAKFIL' ENTERS HERE ALSO
+                        ;
+  D1E6   04C1           OPENENT:	CLR	R1
+  D1E8   CA01 0018       	MOV	R1,@CBN(R8)		;ZERO CURRENT BLOCK FIELD
+  D1EC   CA01 001A      	MOV	R1,@CRN(R8)
+  D1F0   CA01 001E      	MOV	R1,@RELR(R8)
+  D1F4   CA01 001C      	MOV	R1,@RELB(R8)
+  D1F8   CA01 0012      	MOV	R1,@FSZBH(R8)
+  D1FC   CA01 0014      	MOV	R1,@FSZBL(R8)
+  D200   2DC0           	RET
+                        
+  D202   0701           OPENA:	SETO	R1
+  D204   2DC0           	RET
+                        ;
+                        ;******************************
+                        ;
+                        ;	CLOSE A	FILE (FUNCTION 16)
+                        ;
+                        ;	R3 -> FCB
+                        ;
+                        ;	SIMILAR TO OPEN FUNCTION EXCEPT THAT THE FILE SHOULD 
+                        ;	HAVE BEEN PREVIOUSLY EITHER OPENED USING 'OPEN' OR
+                        ;	CREATED USING 'MAKFIL'. ANY OTHER METHOD OF CALLING
+                        ;	WILL TRANSFER JUNK TO THE DIRECTORY - NOT A PLEASANT 
+                        ;	THOUGHT.
+                        ;
+                        ;	CLOSE ALSO ZERO'S THE CRN & CBN WORDS SO THAT OPEN DOES
+                        ;	NOT HAVE TO INITIALISE THESE TWO VALUES.
+                        ;
+                        ;******************************
+                        ;
+  D206   C203           FCLOSE:	MOV	R3,R8		;COPY FCB POINTER
+  D208   2DA0 D316      	CALL	@SEARCH1 		;MAKE SURE IT'S HERE
+  D20C   C041           	MOV	R1,R1	 	;ERROR ?
+  D20E   110F           	JLT	CLOSEB	 	;YES
+  D210   C048           	MOV	R8,R1		;FCB POINTER
+  D212   C083           	MOV	R3,R2		;DONT TOUCH R3
+  D214   0221 000B      	AI	R1,NAMSIZ		;ENTRY DATA POINTER
+  D218   0222 000B      	AI	R2,NAMSIZ		;DIR ENTRY POINTER
+  D21C   0200 0015      	LI	R0,DIRSIZ-NAMSIZ		
+  D220   DCB1           FCLOSE1:	MOVB	*R1+,*R2+		;UPDATE DIRECTORY ENTRY
+  D222   0600           	DEC	R0
+  D224   16FD           	JNE	FCLOSE1
+                        ;	
+                        ; UPDATE DIRECTORY ENTRY
+                        ;
+  D226   2DA0 D55E      	CALL	@WRREC	 	;ALL POINTERS ARE UNTOUCHED FROM SEARCH1
+  D22A   2DA0 D42E      	CALL	@RECLAIM		;TRY TO RECLAIM UNUSED BLOCKS	
+  D22E   2DC0           CLOSEB	RET
+                        ;
+                        ;***************************************************
+                        ;
+                        ;	WRITE SEQUENTIALLY (FUNCTION 21)
+                        ;
+                        ;	R3 -> FCB
+                        ;
+                        ;	THIS FUNCTION IS CONTROLLED MAINLY BY 
+                        ;	THE CRN (NEXT RECORD TO READ) COUNTER.
+                        ;
+                        ;
+                        ;*****************************************************
+                        ;
+                        WRSEQ:
+  D230   C203           	MOV	R3,R8		;SAVE FCB POINTER
+  D232   2DA0 D4F0      	CALL	@CRNTBC	 	;CRN TO RELATIVE BLOCK & REMAINDER
+  D236   C803 D16C      	MOV	R3,@CBO		;SAVE OFFSET
+                        ;
+                        ;	IF WE COULD TRACE FROM EXISTING POSITION WE COULD SPEED THINGS UP AND STOP THRASHING
+                        ;	TRACE1 WILL USE CRN
+                        ;
+  D23A   C0C2           	MOV	R2,R3		;UPDATE
+  D23C   2DA0 D582      	CALL	@TRACE
+  D240   8081           	C	R1,R2		;IF ALLOCATED CONTINUE
+  D242   1316           	JEQ	WRSEQ0
+                        ;
+                        ;	AT THIS POINT WE HAVE THE CBP FROM TRACE
+                        ;	NXTBLK WILL FIND A BLOCK AND ALLOCATE IT (LINK) 
+                        ;	BASED ON CBP
+                        ;
+  D244   2DA0 D51A      	CALL	@NXTBLK	 	;LOCATE A BLOCK AND RETURN IN R7
+  D248   C041           	MOV	R1,R1		;ANY BLOCKS LEFT ?
+  D24A   1123           	JLT	WRSEQ1		;NO - SHOW ERROR
+                        ;
+                        ;	IN CASE WE CROSS BAT BOUNDARIES WE NEED TO ALLOCATE LAST BLOCK FIRST
+                        ;	AND THEN POSTFIX THE CAB FOUND IN TRACE.  TRACE HAS FILLED THE CBP AND
+                        ;	CAB WHICH NEED TO BE UPDATED. R7 IS THE CURRENT BLOCK POINTER AND
+                        ;	R6 CONTAINS THE FREE BLOCK NUMBER
+                        ;
+  D24C   0201 FF80      	LI	R1,LASTBLK		;ALLOCATE THIS BLOCK TO THIS FILE
+  D250   C5C1           	MOV	R1,*R7		;NEW END OF LINK IN CURRENT BAT FROM NXTBLK
+  D252   C807 D16A      	MOV	R7,@CBP		;AND KEEP CBP UPDATED
+  D256   0720 D648      	SETO	@BATCHG		;FORCE AN UPDATE TO THE BAT
+  D25A   2E06           	PUSH	R6		;PUSH NEW ALLOCATED BLOCK CAB
+                        ;
+                        ;	NOW UPDATE PREVIOUS LAST BLOCK TO POINT NOW TO THE NEW LAST BLOCK
+                        ;
+  D25C   C0E0 D168      	MOV	@CAB,R3		;GET PREVIOUS LAST BLOCK RETURNED FROM TRACE
+  D260   2DA0 D5AE      	CALL	@GETBATP		;FIND THE BAT AND GET THE POINTER FROM THE INDEX
+  D264   2E46           	POP	R6
+  D266   C5C6           	MOV	R6,*R7		;UPDATE TO NEW END OF LINK
+  D268   C806 D168      	MOV	R6,@CAB		;UPDATED FROM NXTBLK
+  D26C   0720 D648      	SETO	@BATCHG		;FORCE AN UPDATE TO THE BAT
+                        ;	
+  D270   C0A0 D168      WRSEQ0	MOV	@CAB,R2		;RECOVER DISK BLOCK
+  D274   C0E0 D16C      	MOV	@CBO,R3		;AND OFFSET
+  D278   0200 0002      	LI	R0,WRCMD
+  D27C   C800 D17C      	MOV	R0,@CCMD		;CURRENT COMMAND
+                        
+  D280   2DA0 D2EE      	CALL	@RWREC 
+  D284   C041           	MOV	R1,R1
+  D286   1105           	JLT	WRSEQ1
+                        
+  D288   05A8 000E      	INC	@FSZ(R8) 		;BUMP THE SECTOR COUNT
+  D28C   05A8 001A      	INC	@CRN(R8) 		;BUMP CURRENT RECORD
+  D290   04C1           	CLR	R1
+  D292   2DC0           WRSEQ1	RET
+                        
+                        
+                        ; 
+                        ;********************************
+                        ;
+                        ;	READ SEQUENTIALLY
+                        ;       R3 -> FCB
+                        ;
+                        ;********************************
+                        ;
+  D294   C203           RDSEQ:	MOV	R3,R8		;COPY ADDRESS OF FCB
+  D296   8A28 001A      	C	@CRN(R8),@FSZ(R8)	;END OF FILE ?
+  D29A   000E           
+  D29C   1414           	JHE	RDSEQ1		;YES
+  D29E   2DA0 D4F0      	CALL	@CRNTBC		;CONVERT CRN TO A RELATIVE BLOCK NUMBER
+  D2A2   C803 D16C      	MOV	R3,@CBO		;SAVE OFFSET AND USE BLOCK IN R2 TO
+  D2A6   2DA0 D582      	CALL	@TRACE		;TRACE THROUGH THE LINKED ALLOCATION LIST
+  D2AA   C0E0 D16C      	MOV	@CBO,R3		;RECOVER VARIABLES FOR RWREC
+  D2AE   C0A0 D168      	MOV	@CAB,R2
+  D2B2   0200 0001      	LI	R0,RDCMD
+  D2B6   C800 D17C      	MOV	R0,@CCMD		;CURRENT COMMAND
+  D2BA   2DA0 D2EE      	CALL	@RWREC
+  D2BE   05A8 001A      	INC	@CRN(R8)		;BUMP TO NEXT RECORD 
+  D2C2   04C1           	CLR	R1
+  D2C4   2DC0           	RET
+  D2C6   0701           RDSEQ1	SETO	R1
+  D2C8   2DC0           	RET
+                        ;
+                        ;*******************************
+                        ;
+                        ;	READ RANDOM RECORD
+                        ;
+                        ;********************************
+                        ;
+  D2CA   C8E3 001C      RDRND:	MOV	@RELB(R3),@CBN(R3)	;TRANSER RECORD NUMBER
+  D2CE   0018           
+  D2D0   C8E3 001E      	MOV	@RELR(R3),@CRN(R3)
+  D2D4   001A           
+  D2D6   2DA0 D294      	CALL	@RDSEQ
+  D2DA   0628 001A      	DEC	@CRN(R8)		;READ RANDOM CAN'T INCREMENT THE CRN
+  D2DE   2DC0           	RET
+                        ;
+                        ;*******************************
+                        ;
+                        ;	WRITE RANDOM RECORD
+                        ;	R3 -> FCB
+                        ;       (R3)RELR  MUST HOLD THE RECORD TO WRITE TO
+                        ;
+                        ;*******************************
+                        ;
+  D2E0   C8E3 001C      WRRND:	MOV	@RELB(R3),@CBN(R3)	;TRANSEFER RECORD NUMBER
+  D2E4   0018           
+  D2E6   C8E3 001E      	MOV	@RELR(R3),@CRN(R3)
+  D2EA   001A           
+  D2EC   10A1           	JMP	WRSEQ		;NORMAL SEQUENTIAL WRITE
+                        ;
+                        ;*******************************
+                        ;
+                        ;	COMMON READ WRITE ENTRY
+                        ;
+                        ;	R8 --> FCB
+                        ;	R2 = DISK BLOCK
+                        ;	R3 = RECORD OFFSET
+                        ;*******************************
+                        ;
+  D2EE   C042           RWREC:	MOV	R2,R1		;BLOCK TO CONVERT
+  D2F0   2DA0 D4FE      	CALL	@BTTSC	 	;CONVERT BLOCK TO TRK/SECT(R2/R3)
+  D2F4   2DA0 D630      	CALL	@SETTRK		;R2 HOLDS TRACK
+  D2F8   C803 D178      	MOV	R3,@SECTOR		;SET THE SECTOR USE
+  D2FC   C0A0 D172      	MOV	@ADDR,R2		;THIS IS THE LOCAL COPY OF DMA ADDR
+  D300   2DA0 D1C0      	CALL	@_SETDMA		;CAUGHT WITH CALLS THROUGH DMAFUN VALUE IN R4 FOR MONITOR
+  D304   C020 D17C      	MOV	@CCMD,R0		;GET TYPE
+  D308   0280 0002      	CI	R0,WRCMD		;READ ? 
+  D30C   1602           	JNE	RWREC_R	 	;TRY FOR WRITE
+  D30E   0460 D55E      	B	@WRREC	 	;RETURN FROM RDREC
+  D312   0460 D53A      RWREC_R:	B	@RDREC	 	;ASSSUME READ
+                        ;
+                        ;***************************************************************
+                        ;
+                        ;	SEARCH FIRST( LOOK FOR DIRECTORY ENTRY)
+                        ;
+                        ;	NORMAL DIRECTORY SEARCH BEGINNING AT THE
+                        ;	START OF THE DIRECTORY CONTINUING TILL END.
+                        ;
+                        ;	E5 => DELETED ENTRY	
+                        ;	00 => END OF DIRECTORY	
+                        ;	R3 -> FCB	
+                        ;
+                        ;	RETURN 
+                        ;		R1 =  MINUS ONE FOR BAD RESULT 
+                        ;		R3 -> CURRENT DIRECTORY ENTRY
+                        ;
+                        ;***************************************************************
+                        ;
+                        SEARCH1:
+  D316   C203           	MOV	R3,R8		;SAVE FCB FOR DIROPN
+  D318   0720 D170      	SETO	@DIRENT		;SET CURRENT SECTOR DIRECTORY INDEX
+  D31C   04E0 D17A      	CLR	@CDSECT		;BEGIN SEARCHING AT FIRST SECTOR
+  D320   2DA0 D46E      	CALL	@DIROPN	 	;OPEN THE DIRECTORY
+  D324   1014           	JMP	DLOOK		;RETURN FROM DLOOK
+                        ;
+                        ;***************************************************************
+                        ;
+                        ;	SEARCH NEXT (SEARCH2)
+                        ;
+                        ;	SIMILAR TO CPM - BASICALLY CONTINUES
+                        ;	WHERE LAST SEARCH LEFT OFF. THAT IS IT 
+                        ;	SIMPLY DOES NOT ALTER THE VALUE OF THE 
+                        ;	DIRENT AND CDSECT VARIABLES.
+                        ;
+                        ;**************************************************************
+                        ;
+  D326   C203           SEARCH2:	MOV	R3,R8
+  D328   2DA0 D46E      	CALL	@DIROPN		;OPEN THE DIRECTORY
+  D32C   1010           	JMP	DLOOK
+                        ;
+                        ;-------------------------------------------------
+                        ;
+                        ;  FUCTION 35 - GET FILE SIZE
+                        ;
+                        ;   R2 = FUNCTION NUMBER
+                        ;   R3 -> FCB
+                        ;
+                        ;   PURPOSE - MOVE THE ADDRESS OF THE LAST RECORD
+                        ;	      TO THE RELATIVE FIELDS
+                        ;
+                        ;-------------------------------------------------
+                        ;
+  D32E   C203           GETSIZ:	MOV	R3,R8		;COPY FCB POINTER FOR INTERNAL USE
+  D330   2DA0 D316      	CALL	@SEARCH1		;OPEN THE DIRECTORY
+  D334   C041           	MOV	R1,R1		;SUCCESSFUL OPEN ?
+  D336   1103           	JLT	GETSIZ1	
+  D338   CA28 000E      	MOV	@FSZ(R8),@RELR(R8)	;TRANSFER THE FILE SIZE
+  D33C   001E           
+  D33E   2DC0           GETSIZ1:	RET
+                        ;
+                        ;--------------------------------------------------
+                        ;
+                        ;  FUCTION 36 - SET RELATIVE RECORD
+                        ;   R2 =  FUNCTION NUMBER
+                        ;   R3 -> FCB
+                        ;
+                        ;   PURPOSE - THE RELATIVE RECORD FIELD IS SET TO THE
+                        ;             SAME FILE ADDRESS AS THE CURRENT BLOCK AND
+                        ;             CURRENT RECORD.
+                        ;
+                        ;---------------------------------------------------
+                        ;
+  D340   C8E3 0018      SETREL:	MOV	@CBN(R3),@RELB(R3)	;TRANSFER RECORD POINTERS
+  D344   001C           
+  D346   C8E3 001A      	MOV	@CRN(R3),@RELR(R3)
+  D34A   001E           
+  D34C   2DC0           	RET
+                        ;
+                        ;*****************************************
+                        ;
+                        ;	GENERAL DIRECTORY SEARCH SUBROUTINE
+                        ;	R8 = PTR TO FCB
+                        ;	MUST CHECK FILE ATTRIBUTES FOR FILE TYPE
+                        ;
+                        ;******************************************
+                        ;
+  D34E   2DA0 D49A      DLOOK:	CALL	@DIRBLK	 	;GET NEXT ENTRY PNTR IN R3
+  D352   1115           	JLT	NONTRY	 	;NOT FOUND
+  D354   C083           DLOOK1	MOV	R3,R2	 	;SAVE PNTR
+  D356   D012           	MOVB	*R2,R0	 	;TEST FOR EOD
+  D358   11FA           	JLT	DLOOK	 	;DELETED ENTRY
+  D35A   1502           	JGT	DLOOK4	 	;VALID
+  D35C   04C3           	CLR	R3	 	;SHOW END OF DIRECTORY REACHED
+  D35E   100F           	JMP	NONTRY	
+  D360   0200 000B      DLOOK4	LI	R0,NAMSIZ 		;NUMBER OF CHARS TO MATCH
+  D364   C148           	MOV	R8,R5		;SAVE FCB PNTR
+  D366   9815 D164      NXTLTR	CB	*R5,@WILD		;? WILL MATCH ALL (LIKE CPM)
+  D36A   1603           	JNE	DLOOK5		;PROCESS NORMALLY
+  D36C   0585           	INC	R5		;ELSE ASSUME MATCH SO BUMP POINTERS
+  D36E   0582           	INC	R2
+  D370   1002           	JMP	DLOOK6
+  D372   9D72           DLOOK5	CB	*R2+,*R5+		;MATCH ?
+  D374   16EC           	JNE	DLOOK	 	;NO SO - KEEP LOOKING
+  D376   0600           DLOOK6	DEC	R0	
+  D378   16F6           	JNE	NXTLTR	 	;CONTINUE
+  D37A   04C1           	CLR	R1	 	;SHOW GOOD RESULT
+  D37C   2DC0           	RET	
+  D37E   0701           NONTRY	SETO	R1	 
+  D380   2DC0           	RET			;SHOW NOT FOUND
+                        ;
+                        ;********************************	
+                        ;
+                        ;	CREATE A DIRECTORY ENTRY (FUNCTION 22)
+                        ;
+                        ;	ENTRY: 	R3 -> FCB
+                        ;		R2 = 22
+                        ;
+                        ;	RETURN: R1 = 0 EMPTY DIRECTORY FOUND
+                        ;		R1 = FF NO EMPTY DIRECTORY AVAILABLE
+                        ;
+                        ;	THIS FUNCTION SHOULD BE CALLED ONLY WITH THE
+                        ;	FILENAME IN THE FIRST 10 BYTES OF THE FCB. 'MAKFIL'
+                        ;	MAKES A POINT OF ZEROING ALL BAR THE FILENAME WITH
+                        ;	THE DIRECTORY ENTRY BEFORE WRITING IT TO DISK. HENCE
+                        ;	YOU MUST CALL CLOSE TO PROPERLY TRANSFER ANY FILE 
+                        ;	ATTRIBUTES ETC. ALSO NOTE THAT THE FSB WILL BE RETURNED
+                        ;	HOWEVER ALL OTHER FCB ENTRIES WILL BE ZEROED.
+                        ;
+                        ;
+                        ;******************************	
+                        ;
+  D382   C203           MAKFIL:	MOV	R3,R8			;LOCAL FCB COPY
+  D384   2DA0 D51A      	CALL	@NXTBLK	 		;FIND A SECTOR FOR FSB AND PLACE IN CAB
+  D388   C041           	MOV	R1,R1	 		;ERROR ?
+  D38A   112E           	JLT	MAKERR			;LOOKS LIKE DISK FULL 
+  D38C   C806 D168       	MOV	R6,@CAB			;UPDATE BLOCK VECTORS ETC
+  D390   C807 D16A      	MOV	R7,@CBP
+  D394   0720 D170      	SETO	@DIRENT			;SIMILAR TO SEARCH1
+  D398   04E0 D17A      	CLR	@CDSECT			;MUST SET THESE VARIABLES
+  D39C   2DA0 D46E      	CALL	@DIROPN	 		;OPEN THE DIRECTORY
+  D3A0   2DA0 D49A      NTHR	CALL	@DIRBLK	 		;GET ENTRY THROUGH R3
+  D3A4   1121           	JLT	MAKERR			;END OF DIRECTORY
+  D3A6   D013           	MOVB	*R3,R0	 		;CHECK ENTRY
+  D3A8   15FB           	JGT	NTHR	 		;VALID ENTRY
+                        ;
+                        ; ASSUME R3 POINTS TO DIR ENTRY
+                        ;
+  D3AA   04C0           	CLR	R0
+  D3AC   C148           	MOV	R8,R5
+  D3AE   0225 000B      	AI	R5,FTY		;FLUSH FROM FILE TYPE ENTRY
+  D3B2   0202 0015      	LI	R2,DIRSIZ-NAMSIZ	;NUMBER OF BYTES TO ZERO
+  D3B6   DD40           MKFIL2	MOVB	R0,*R5+
+  D3B8   0602           	DEC	R2
+  D3BA   16FD           	JNE	MKFIL2
+  D3BC   CA20 D168      	MOV	@CAB,@FSB(R8)	;TRANSFER FSB
+  D3C0   000C           
+  D3C2   0201 FF80      	LI	R1,LASTBLK		;MARK AS FIRST AND LAST BLOCK IN BAT
+  D3C6   C020 D16A      	MOV	@CBP,R0
+  D3CA   C401           	MOV	R1,*R0		;SHOW ITS THE LAST BLOCK AS WELL AS THE FIRST
+                        ;
+                        ; NOW CREATE THE ZERO LENGTH FILE
+                        ;
+  D3CC   0202 0020      	LI	R2,DIRSIZ		;TRANSFER FILENAME + FSB TO DIRECTORY
+  D3D0   C148           	MOV	R8,R5	 		;SAVE FCB VECTOR
+  D3D2   DCF5           MKFIL1	MOVB	*R5+,*R3+		;TRANSER FCB ENTRY TO DIRECTRY
+  D3D4   0602           	DEC	R2	
+  D3D6   16FD           	JNE	MKFIL1	
+  D3D8   2DA0 D55E      	CALL	@WRREC		;WRITE THE DIRECTORY
+  D3DC   2DA0 D60A      	CALL	@WRBAT	 	;UPDATE BAT AS DIRECTORY ENTRY IS VALID
+  D3E0   C041           	MOV	R1,R1		;IF NO ERROR SIMULATE 'OPEN'
+  D3E2   1102           	JLT	MAKERR
+  D3E4   0460 D1E6      	B	@OPENENT
+  D3E8   0701           MAKERR	SETO	R1 
+  D3EA   2DC0           	RET
+                        ;
+                        ;*************************************************
+                        ;
+                        ;  RENAME A FILE
+                        ;
+                        ;  R3 -> FCB   BYTES 0 - 17  OLD NAME
+                        ;	       BYTES 18- 27  NEW NAME 
+                        ;
+                        ;*************************************************
+                        ;
+  D3EC   C203           RENAME:	MOV	R3,R8
+  D3EE   2DA0 D316      	CALL	@SEARCH1		;CHECK TO SEE IF THE FILE EXITS
+  D3F2   C041           	MOV	R1,R1
+  D3F4   110B           	JLT	RENAM2		;NOT FOUND
+  D3F6   0200 000B      	LI	R0,NAMSIZ		;FILENAME SIZE	
+  D3FA   C083           	MOV	R3,R2		;R2 -> DIRECTORY ENTRY
+  D3FC   C048           	MOV	R8,R1
+  D3FE   0221 0012      	AI	R1,NAMEOFF2		;POINT TO 2ND FILE NAME
+  D402   DCB1           RENAM1	MOVB	*R1+,*R2+		;COPY NEW FILE NAME OVER OLD ONE
+  D404   0600           	DEC	R0
+  D406   16FD           	JNE	RENAM1		;JUMP IF NOT DONE
+                        ;
+                        ; NOW WRITE THE NEW DIRECTORY ENTRY BACK
+                        ;
+  D408   2DA0 D55E      	CALL	@WRREC		;ALL DIRECTORY POINTERS UNTOUCHED FROM SEARCH1
+  D40C   2DC0           RENAM2	RET
+                        ;
+                        ;******************************
+                        ;
+                        ;	ERASE A	DIRECTORY ENTRY
+                        ;
+                        ;	R3 -> FCB
+                        ;
+                        ;	ON RETURN R1 = 0 FOR DIRECTORY ENTRY FOUND
+                        ;		     = -1 FOR NO DIRECTORY ENTRY FOUND
+                        ;
+                        ;*******************************
+                        ;
+  D40E   C203           ERAFIL:	MOV	R3,R8
+  D410   2DA0 D316      	CALL	@SEARCH1 		;LOOK FOR THE FILE ENTRY
+  D414   C041           	MOV	R1,R1	 	;DID WE FIND IT ?
+  D416   1129           	JLT	ERAERR	 	;NO
+  D418   0201 8000      	LI	R1,8000H		;R3->DIR ENTRY
+  D41C   F8C1 0000      	SOCB	R1,@NAM(R3)		;MAKE DELETED
+  D420   CA23 000C      	MOV	@FSB(R3),@FSB(R8)	;NB RECOVER BAT POINTER
+  D424   000C           
+  D426   04E8 000E      	CLR	@FSZ(R8)		;FORCE RE-ALLOCATION OF USED BLOCK
+  D42A   2DA0 D55E      	CALL	@WRREC	 	;WRITE FDE BACK TO DISK
+                        ;
+                        ;---NOW	RELEASE	ALLOCATED BLOCKS
+                        ;
+  D42E   04C3           RECLAIM:	CLR	R3		;START AT FIRST BAT SECTOR
+  D430   2DA0 D5AE      	CALL	@GETBATP 		;READ IN THE BAT TABLE
+  D434   C0E8 000E      	MOV	@FSZ(R8),R3		;GET FILE SIZE FOR AND
+  D438   2DA0 D4F4      	CALL	@RECTBC		;CONVERT FILE SIZE TO BLOCKS
+  D43C   2DA0 D582      	CALL	@TRACE		;TRACE THROUGH TO TO BLOCK NUMBER
+  D440   0201 FF80      	LI	R1,LASTBLK
+  D444   C0D7           	MOV	*R7,R3		;RECOVER BAT INDEX
+  D446   C5C1           	MOV	R1,*R7		;ASSUME LAST LINK ENTRY
+  D448   C028 000E      	MOV	@FSZ(R8),R0		;ZERO FILE SIZE IE RECLAIM ALL BLOCKS?
+  D44C   1601           	JNE	ERA00		;NO
+  D44E   04D7           	CLR	*R7		;YES SO ZERO LAST LINK
+  D450   8043           ERA00	C	R3,R1		;LAST LINK ?
+  D452   1307           	JEQ	ERA02		;YES
+  D454   2DA0 D5AE      ERA01	CALL	@GETBATP		;GET INDEX (IN R5) TO NEXT BAT
+  D458   C0D7           	MOV	*R7,R3 		;NEXT INDEX VALUE
+  D45A   04D7           	CLR	*R7		;ZERO TO SHOW BLOCK IS FREE
+  D45C   8043           	C	R3,R1		;CHECK FOR FINAL LINK
+  D45E   1301           	JEQ	ERA02		;YES - SO WE'RE FINISHED
+  D460   10F9           	JMP	ERA01		;KEEP GOING
+  D462   2DA0 D60A      ERA02	CALL	@WRBAT		;UPDATE DISK VERSION OF BAT
+  D466   04C1           	CLR	R1		;DONE
+  D468   2DC0           	RET	
+  D46A   0701           ERAERR	SETO	R1
+  D46C   2DC0           	RET
+                        ;
+                        ;*********************************
+                        ;
+                        ;	READ IN THE DIRECTORY
+                        ;
+                        ;	R8 -> FCB	
+                        ;
+                        ;*********************************
+                        ;
+  D46E   C0E0 D17A      DIROPN:	MOV	@CDSECT,R3		;ASSUME THIS HAS BEEN SET
+  D472   0223 0004      	AI	R3,FDIRRN		;FIRST DIRECTORY RECORD NUMBER
+  D476   2DA0 D4F4      	CALL	@RECTBC		;CONVERT TO A BLOCK NUMBER
+  D47A   C042           	MOV	R2,R1		;BLOCK TO FIND
+  D47C   2DA0 D4FE      	CALL	@BTTSC		;CONVERT TO TRACK/SECTOR
+  D480   2DA0 D630      	CALL	@SETTRK		;BIOS CALL
+  D484   C803 D178      	MOV	R3,@SECTOR		;SET THE SECTOR TO READ
+  D488   0202 D84A      	LI	R2,DIRBUFF 		;BUFFER TO USE
+  D48C   2DA0 D1C0      	CALL	@_SETDMA	 	;BIOS DMA
+  D490   2DA0 D53A      	CALL	@RDREC	 	;READ IN DIRECTORY
+  D494   0203 D84A      	LI	R3,DIRBUFF		;USE SAME BUFFER 
+  D498   2DC0           	RET
+                        ;
+                        ;==============================================================
+                        ;	FIND THE NEXT DIRECTORY ENTRY
+                        ;	DIRENT IS JUST AN OFFSET INTO THE 
+                        ;	DIRECTORY BUFFER. ITS VALUUE DEPENDS ON 
+                        ;	THE BLOCK SIZE.
+                        ;
+                        ;	R3 -> TO FILE DIRECTORY CONTENTS
+                        ;===============================================================
+                        ;
+  D49A   05A0 D170      DIRBLK:	INC	@DIRENT	 	;UP THE LAST ENTRY
+  D49E   C0E0 D170      	MOV	@DIRENT,R3
+  D4A2   0A53           	SLA	R3,5		;*32 IE 32 BYTES DIRECTORY ENTRY
+  D4A4   0223 D84A      	AI	R3,DIRBUFF		;POINT TO NEXT ENTRY
+  D4A8   0283 DA4A      	CI	R3,DIRBUFF+BUFSIZ	;HAVE WE REACHED THE END OF THE BUFFER
+  D4AC   1A1C           	JL	DIRB01		;NO
+  D4AE   05A0 D17A      	INC	@CDSECT	 	;NOW - TRY NEXT SECTOR
+  D4B2   C0E0 D17A      	MOV	@CDSECT,R3		;R3 HOLDS RECORD OFFSET WITHIN BLOCK
+  D4B6   0283 0004      	CI	R3,NDSECT		;NUMBER OF SECTORS ALLOCATED TO DIRECTORY
+  D4BA   1418           	JHE	DIRB03		;SHOW END OF DIRECTORY
+  D4BC   0223 0004      	AI	R3,FDIRRN		;FIRST DIRECTORY RECORD NUMBER
+  D4C0   2DA0 D4F4      	CALL	@RECTBC		;CONVERT TO A BLOCK NUMBER
+  D4C4   C042           	MOV	R2,R1		;BLOCK TO FIND
+  D4C6   2DA0 D4FE      	CALL	@BTTSC		;CONVERT TO TRACK/SECTOR
+  D4CA   2DA0 D630      	CALL	@SETTRK		;BIOS CALL TO SET TRACK
+  D4CE   C803 D178      	MOV	R3,@SECTOR		;SET THE SECTOR
+  D4D2   0202 D84A      	LI	R2,DIRBUFF		;UPDATE DMA ADDRESS
+  D4D6   2DA0 D1C0      	CALL	@_SETDMA
+  D4DA   2DA0 D53A      	CALL	@RDREC	 	;READ NEXT SECTOR
+                        ;
+                        ;SHOULD THIS BE SET TO ONE OR CLR'D?
+                        ;	CLR	@DIRENT			;RESET FOR NEXT TIME
+  D4DE   0720 D170      	SETO	@DIRENT			;RESET FOR NEXT TIME
+  D4E2   0203 D84A      	LI	R3,DIRBUFF		;-->DIRECTORY ENTRY
+  D4E6   04C1           DIRB01:	CLR	R1			;FLAG SET
+  D4E8   C041           DIRB02:	MOV	R1,R1	 		;SET STATUS
+  D4EA   2DC0           	RET
+  D4EC   0701           DIRB03:	SETO	R1
+  D4EE   10FC           	JMP	DIRB02
+                        ;
+                        ;******************************
+                        ;
+                        ;	CONVERT CRN TO BLOCK NUMBER (CRNTBC)
+                        ;
+                        ;	THIS ROUTINE SIMPLY DIVIDES RECORD NUMBER
+                        ;	BY BLOCK SIZE TO GIVE A RELATIVE BLOCK NO
+                        ;	SO THAT THE BAT MAY BE INDEXED VIA RESULT
+                        ;	IN R2.
+                        ;
+                        ;*******************************
+                        ;
+  D4F0   C0E8 001A      CRNTBC:	MOV	@CRN(R8),R3 	;NEXT RECORD TO READ
+                        ;
+                        ;	ENTER HERE IF GENERAL RELATIVE CONVERSION REQUIRED
+                        ;	R3 MUST HOLD RECORD NUMBER - NOTE RELATIVE OFFSET WITHIN BLOCK IS FOUND
+                        ;	RECORDS BEGIN AT 1
+                        ;	BLOCKS BEGIN AT 0
+                        ;
+  D4F4   04C2           RECTBC	CLR	R2	 	;FOR DIVIDE
+  D4F6   0200 0004      	LI	R0,SECBLK	 	;SECTORS/BLOCK
+  D4FA   3C80           	DIV	R0,R2	 	;R2 & R3 HOLD RESULT
+  D4FC   2DC0           RECTBC1	RET
+                        ;
+                        ;------------------------------------------------------------------------
+                        ;
+                        ;	BLOCK NO. TO TRK/SECT CONVERSION
+                        ;
+                        ;	THIS ROUTINE WILL CONVERT A GIVEN BLOCK AND
+                        ;	AND RECORD NUMBER WITHIN A FILE TO A PHYSICAL
+                        ;	TRACK AND SECTOR. I.E. YOU MAY WISH TO LOCATE
+                        ;	THE TRACK/SECTOR OF SAY RECORD 3 WITHIN BLOCK
+                        ;	10 ETC.
+                        ;
+                        ;	THIS ROUTINE IS NORMALLY CALLED AFTER A CALL
+                        ;	TO CRNTBC/RECTBC WITHIN RDSEQ ,WRSEQ ETC.
+                        ;
+                        ;	R1 = BLOCK NO.
+                        ;	R3 = RECORD OFFSET WITHIN BLOCK
+                        ;
+                        ;	RECORDS BEGIN AT 1
+                        ;	BLOCKS BEGIN AT 0
+                        ;
+                        ;	RETURN WITH R2=TRACK,R3=SECTOR
+                        ;
+                        ;	TRK = INT((BLK*SECBLK + R3)/SECTRK)
+                        ;	SECT = REMAINDER(BLK...)+1		
+                        ;
+                        ;	R2 = TRK, R3 = SECT
+                        ;
+                        ; NOTE NEEDED TO REMOVE THE MULTIPY AS IT HAS A BUG.  SEE 99105 ERRATA
+                        ;------------------------------------------------------------------------
+                        ;
+                        ;REVISED MULTIPLY TO AVOID 99105 MULTIPLY BUG
+                        ;
+                        
+  D4FE   0200 0004      BTTSC	LI	R0,SECBLK
+  D502   04C2           	CLR	R2
+  D504   1303           	JEQ	BTTSC2
+  D506   A081           BTTSC1	A	R1,R2		;R2=BLK*SECBLK 
+  D508   0600           	DEC	R0
+  D50A   16FD           	JNE	BTTSC1
+  D50C   A0C2           BTTSC2	A	R2,R3		;R3=BLK*SECBLK+R3
+  D50E   04C2           	CLR	R2		;MSB OF QUOTIENT
+  D510   0200 0012      	LI	R0,SECTRK	;SECTORS/TRACK
+  D514   3C80           	DIV	R0,R2	 	;R2=TRK,R3=SECT (R2+R3)/R0
+  D516   0583           	INC	R3		;TAKES CARE OF ZERO OFFSET FOR CRN
+  D518   2DC0           BTTSC0	RET
+                        ;
+                        ;*******************************
+                        ;
+                        ;	
+                        ;	FIND A FREE BLOCK	
+                        ;	NXTBLK WILL TRAVERSE THE BAT LOOKING FOR A ZEROED
+                        ;	BAT ENTRY.  ONCE FOUND NO CHANGE TO THE BAT WILL BE
+                        ;	MADE AND ONLY THE POINTERS TO THE ENTRY WILL BE RETURNED.
+                        ;	IT IS THEN UP TO THE CALLING PROGRAMME TO INSERT THE NEW
+                        ;	LINKS.
+                        ;
+                        ;	NOTE: RDBAT WILL PULL IN THE APPROPRIATE BAT SECTOR AS REQUIRED
+                        ;
+                        ;	R8 -> FCB
+                        ;
+                        ;	R1 = -1 (ERROR)
+                        ;	R1 = 0  (GOOD RESULT)
+                        ;	
+                        ;
+                        ;****************************************************************
+                        ;
+  D51A   C020 D168      NXTBLK:	MOV	@CAB,R0			;BEGIN AT LAST BLOCK TO SPEED THINGS UP AND TO STOP THRASHING
+                        					;TO TO LOOK AT LATER WRAPPING BACK TO BEGINING
+  D51E   C0C0           NXTBLK2	MOV	R0,R3
+  D520   2DA0 D5AE      	CALL	@GETBATP			;FIND THE BAT AND GET THE POINTER FROM THE INDEX
+  D524   C057           	MOV	*R7,R1			;POINTER IS IN R7
+  D526   1305           	JEQ	NXTBLK4			;ANY FREE ? YES
+  D528   0281 FFFF      	CI	R1,-1			;LAST AVAILABLE BLOCK ?
+  D52C   1304           	JEQ	NXTBLK3			;YES
+  D52E   0580           	INC	R0			;NEXT BLOCK
+  D530   10F6           	JMP	NXTBLK2			;KEEP LOOKING
+                        ;
+                        ; R7 -> FREE BLOCK
+                        ; R6 =  FREE BLOCK NUMBER
+                        ;
+  D532   C180           NXTBLK4	MOV	R0,R6			;COPY FREE BLOCK NUMBER HERE
+  D534   04C1           	CLR	R1			;SHOW SUCCESS
+  D536   C041           NXTBLK3	MOV	R1,R1			;RETURN WITH RESULT CONDINTION SET
+  D538   2DC0           	RET 
+                        ;
+                        ;****************************
+                        ;
+                        ;	READ A RANDOM RECORD 
+                        ;
+                        ;******************************
+                        ;
+  D53A   2E08           RDREC:	PUSH	R8	 		;SAVE FCB 
+  D53C   C0E0 D176      	MOV	@TRACK,R3
+  D540   2DA0 F018      	CALL	@MSEEK
+  D544   1608           	JNE	RDERR
+  D546   C120 D174      	MOV	@IOPTR,R4
+  D54A   C0E0 D178      	MOV	@SECTOR,R3
+  D54E   2DA0 F01C      	CALL	@MRDREC	 		;READ THE RECORD IN
+  D552   C041           	MOV	R1,R1	 		;ERROR ?
+  D554   1301           	JEQ	RDREC1	 		;NO
+  D556   0701           RDERR	SETO	R1	 		;SHOW ERROR
+  D558   2E48           RDREC1	POP	R8
+  D55A   C041           	MOV	R1,R1
+  D55C   2DC0           	RET
+                        ;
+                        ;******************************
+                        ;
+                        ;	WRITE A	RANDOM RECORD
+                        ;
+                        ;*****************************
+                        ;
+                        WRREC:
+  D55E   2E08           	PUSH	R8	 		;SAVE FCB PNTR
+  D560   C0E0 D176      	MOV	@TRACK,R3
+  D564   2DA0 F018      	CALL	@MSEEK
+  D568   1608           	JNE	WRERR
+  D56A   C120 D174      	MOV	@IOPTR,R4
+  D56E   C0E0 D178      	MOV	@SECTOR,R3
+  D572   2DA0 F020      	CALL	@MWRREC	
+  D576   C041           	MOV	R1,R1	
+  D578   1301           	JEQ	WRREC_X
+                        
+  D57A   0701           WRERR:	SETO	R1
+                        
+  D57C   2E48           WRREC_X:	POP	R8
+  D57E   C041           	MOV	R1,R1
+  D580   2DC0           	RET
+                        ;
+                        ;*************************************************
+                        ;*
+                        ;*   TRACE THE FILES LINKED LIST AND FIND THE 
+                        ;*   BAT ENTRY CORRESPONDING TO THE FILE'S NTH
+                        ;*   BLOCK.
+                        ;*   ENTER WITH FILES RELATIVE RECORD IN R2 (SET TO -1 IF LAST LINK REQUIRED)
+                        ;*   EXIT  WITH DBN (DISK BLOCK NUMBER ) POINTER IN R7
+                        ;*   AND WITH R1=R2 IF MATCH TO R1 AND R1=0FFF8 IF LAST LINK
+                        ;*
+                        ;*   CALL TRACES WITH FSB/CAB DURING WRSEQ TO SPEED UP TRACE
+                        ;*
+                        ;**************************************************
+                        ;
+  D582   C0E8 000C      TRACE:	MOV	@FSB(R8),R3		;GET FIRST FILE BLOCK - THIS IS THE START OF THE LINK
+  D586   04C1           	CLR	R1		;COUNTER
+  D588   2DA0 D5AE      TRACE1	CALL	@GETBATP		;GET THE BLOCK POINTER TO REQUESTED BAT ENTRY IN R7
+  D58C   C117           	MOV	*R7,R4		;GET NEXT ALLOCATION LINK
+  D58E   0284 FF80      	CI	R4,LASTBLK		;IS IT THE LAST BLOCK ?
+  D592   1308           	JEQ	TRACE3		;YES
+  D594   8081           	C	R1,R2		;HAVE WE REACHED THE WANTED BLOCK YET ?
+  D596   1306           	JEQ	TRACE3		;YES
+  D598   0581           	INC	R1		;BUMP THE RECORD POINTER
+  D59A   C0C4           	MOV	R4,R3		;GET THE LINK AND KEEP GOING
+  D59C   1301           	JEQ	TRACE2		;CAN'T IMAGINE WHY ?
+  D59E   10F4           	JMP	TRACE1
+  D5A0   0701           TRACE2	SETO	R1
+  D5A2   2DC0           	RET
+  D5A4   C807 D16A      TRACE3	MOV	R7,@CBP		;CURRENT BLOCK POINTER
+  D5A8   C803 D168      	MOV	R3,@CAB		;AND CURRENT NUMBER
+  D5AC   2DC0           	RET
+                        ;
+                        ; GETBATP (GET BAT POINTER) CHECK TO SEE IF THE BAT NUMBER (WHICH WILL
+                        ; INDEX INTO THE BAT) PASSED
+                        ; IN R3 LIES WITHIN THE RANGE OF THE CURRENT
+                        ; BAT WHICH IS IN MEMORY. IF NOT IT WILL READ
+                        ; THE APPRORIATE BAT INTO THE BUFFER
+                        ; R7 WILL BE RETURNED AS A POINTER TO THE INDEXED ELEMENT
+                        ; REGISTERS R0->R5 ARE PRESERVED
+                        ;
+  D5AE   2D05           GETBATP: 	PUSHREG	R5
+  D5B0   C003           	MOV	R3,R0
+  D5B2   0980           	SRL	R0,BATSF		;DETERMINE CURRENT BAT PAGE OR SECTOR BASED ON 256 BLOCKS PER PAGE
+  D5B4   8800 D16E      	C	R0,@CBSECT		;CURRENT BAT SECTOR IN MEMORY
+  D5B8   1303           	JEQ	FBAT0		;IN MEMORY
+  D5BA   C040           	MOV	R0,R1		;BAT SECTOR TO BE READ IN
+  D5BC   2DA0 D5D0      	CALL	@RDBAT		;UPDATE MEMORY VERSION OF BAT
+                        ;
+                        ;	WE HAVE CROSSED TO ANOTHER BAT PAGE, NEED TO ADJUST
+                        ;
+  D5C0   2D45           FBAT0	POPREG	R5		;NEED TO POP HERE TO GET R3
+  D5C2   C1C3           	MOV	R3,R7
+  D5C4   0A17           	SLA	R7,1		;TWO BYTES PER ENTRY AND MAKES IT WORD EVEN
+  D5C6   0247 00FF      	ANDI	R7,BATMSK		;MASK OFF HIGH BITS SO WE JUST HAVE THE BLOCK INDEX INTO THE 256 BAT ENTRY PAGE
+  D5CA   0227 D64A      	AI	R7,BATBUFF		;R7->INDEXED ELEMENT
+  D5CE   2DC0           	RET			;ALL IS OKAY
+                        ;
+                        ;	READ IN THE BAT
+                        ;	R1 HOLDS CURRENT BAT SECTOR TO READ IN 
+                        ;	DON'T CHECK IF ALREADY IN MEMORY AS THE CALLING ROUTINE WILL DO THAT
+                        ;	R1=0 FOR 1ST 1 FOR 2ND ETC
+                        ;
+  D5D0   C020 D648      RDBAT:	MOV	@BATCHG,R0		;IF THERE HAS BEEN A CHANGE FIRST UPDATE
+  D5D4   0580           	INC	R0
+  D5D6   1607           	JNE	RDBAT1		;NO CHANGE SO PERFORM AS REQUESTED
+                        ;
+                        ;	WRITE MODIFIED BAT TO DISC
+                        ;
+  D5D8   8801 D16E      RDBAT0	C	R1,@CBSECT		;IF SECTOR IN MEMORY EXIT
+  D5DC   1315           	JEQ	RDBAT2
+  D5DE   2E01           	PUSH	R1		;CHANGE SO DON'T READ IF IF NOT NECESSARY
+  D5E0   2DA0 D60A      	CALL	@WRBAT		;FORCE UPDATE OF DISK BAT
+  D5E4   2E41           	POP	R1
+  D5E6   C801 D16E      RDBAT1	MOV	R1,@CBSECT		;NEW SECTOR
+  D5EA   0202 0000      	LI	R2,BATTRK 		;FIXED BAT TRACK 
+  D5EE   2DA0 D630      	CALL	@SETTRK
+  D5F2   C081           	MOV	R1,R2		;SECTOR N
+  D5F4   0222 0002      	AI	R2,FBATSEC		;OFFSET FROM BAT START
+  D5F8   C802 D178      	MOV	R2,@SECTOR		;SET THE SECTOR TO USE
+  D5FC   0202 D64A      	LI	R2,BATBUFF 		;USE THIS BUFFER
+  D600   2DA0 D1C0      	CALL	@_SETDMA
+  D604   2DA0 D53A      	CALL	@RDREC	 		;READ IN BAT
+  D608   2DC0           RDBAT2	RET
+                        ;
+                        ;	WRITE OUT A BAT SECTOR
+                        ;	CBSECT HOLDS BAT SECTOR TO BE WRITTEN TO DISK
+                        ;
+  D60A   0202 0000      WRBAT:	LI	R2,BATTRK  		;TRACK 0
+  D60E   2DA0 D630      	CALL	@SETTRK
+  D612   C0A0 D16E      	MOV	@CBSECT,R2 		;SECTOR
+  D616   0222 0002      	AI	R2,FBATSEC
+  D61A   C802 D178      	MOV	R2,@SECTOR		;SET THE SECTOR TO READ
+  D61E   0202 D64A      	LI	R2,BATBUFF		;USE SAME BUFFER 
+  D622   2DA0 D1C0      	CALL	@_SETDMA
+  D626   2DA0 D55E      	CALL	@WRREC
+  D62A   04E0 D648      	CLR	@BATCHG		;DISK BM NOW EQUALS MEMORY VERSION
+  D62E   2DC0           WRBAT1:	RET
+                        ;
+                        ;======================================================
+                        ;	MAP THE TRACK NUMBER IN R2 TO
+                        ;	EITHER SIDE 0 OR SIDE 1
+                        ;
+                        ;	RETURN IN R2 AND @TRACK
+                        ;========================================================
+                        ;
+  D630   0282 0050      SETTRK:	CI	R2,TRKDSK		;CHECK FOR SIDE 2
+  D634   1106           	JLT	SETTRK1	
+  D636   0222 FF60      	AI	R2,-2*TRKDSK
+  D63A   0582           	INC	R2
+  D63C   0502           	NEG	R2
+  D63E   0262 8000      	ORI	R2,8000H		;SET MSB TO INDICATE SIDE 1
+                        SETTRK1:
+  D642   C802 D176      	MOV	R2,@TRACK
+  D646   2DC0           	RET
+                        
+                        ;
+                        ;	BUFFERS ETC
+                        ;
+                        ;	THE FLAG BATCHG(BIT MAP CHANGE) IS SET WHENEVER AN ALLOCATION
+                        ;	BIT IN THE BLOCK ALLOCATION TABLE (BAT)HAS BEEN 
+                        ;	CLEARED/ALLOCATED. THIS ENSURES THAT THE BAT
+                        ;	WILL NOT BE OVERWRITTEN BY THE DISK VERSION OF THE BIT MAP.
+                        ;	THIS FLAG IS CLEARED ONCE A BIT MAP DISK WRITE IS FORCED BY
+                        ;	A FILE CLOSURE OR A DIRECTORY FSB BEING REQUESTED.
+                        ;
+  D648   0000           BATCHG:	WORD	0		;BAT CHANGE FLAG
+  D64A                  BATBUFF:	BSS	BUFSIZ		;BAT BUFFER
+  D84A                  DIRBUFF:	BSS	BUFSIZ		;DIRECTORY BUFFER
+  DA4A                  INTBUFF:	BSS	BUFSIZ		;BUFFER FOR C COMPILED PROGRAMMES
+                        ;
+  DC4A                  	END
+
+No error(s).
+GETSIZ           D32E  DIRBLK           D49A  SETTRK           D630  FUN01            D110  
+EXIT             D160  FUN11            D124  ALLONES          D165  FUN21            D138  
+FTY              000B  FUN31            D14C  GETSIZ1          D33E  DLOOK            D34E  
+NSIDES           0002  WRCMD            0002  WRBAT            D60A  NAMEOFF2         0012  
+RENAM2           D40C  BATCHG           D648  WRBAT1           D62E  DLOOK1           D354  
+RENAME           D3EC  DLOOK4           D360  RDERR            D556  DLOOK5           D372  
+CBP              D16A  DLOOK6           D376  FBAT0            D5C0  FSB              000C  
+NXTBLK4          D532  TRACE            D582  SEARCH2          D326  GETBATP          D5AE  
+FUN18            D132  LASTBLK          FF80  FUN38            D15A  TRACE1           D588  
+MCONIN           F008  TRACE2           D5A0  FUN14            D12A  BDOS0            D17E  
+FUN34            D152  TRACE3           D5A4  SECTOR           D178  MWBOOT           F028  
+R1               0001  DMAFUN           D1B6  R3               0003  MONITOR          F000  
+R2               0002  OPENB            D1E0  R7               0007  IOPTR            D174  
+R8               0008  MRDREC           F01C  RDSEQ            D294  RDREC            D53A  
+FUN00            D10E  MON_PTR          0086  FUN20            D136  RDREC1           D558  
+FUN40            D15E  RWREC            D2EE  FDIRRN           0004  CBN              0018  
+POP              2E40  CIN              D194  FLA              0010  NXTBLK2          D51E  
+NXTLTR           D366  CRN              001A  WRREC_X          D57C  RWREC_R          D312  
+BTTSC0           D518  FUN06            D11A  BTTSC2           D50C  FUN16            D12E  
+CDSECT           D17A  FUN26            D142  MRDID            F024  FUN36            D156  
+MINUS1           FFFF  RET              2DC0  ERA02            D462  BDOS             D100  
+RECLAIM          D42E  BATBUFF          D64A  MAKERR           D3E8  FUN02            D112  
+FUN09            D120  FUN12            D126  FUN29            D148  FUN22            D13A  
+INTBUFF          DA4A  FUN32            D14E  FUN05            D118  DIRBUFF          D84A  
+FUN25            D140  MKFIL1           D3D2  NBATS            0001  MKFIL2           D3B6  
+WRSEQ0           D270  DIRB01           D4E6  DIROPN           D46E  DIRB02           D4E8  
+SECBLK           0004  DIRB03           D4EC  WILD             D164  DIRSIZ           0020  
+DCONIO           D19C  CAB              D168  SETTRK1          D642  OPENENT          D1E6  
+WRRND            D2E0  RELB             001C  ERAERR           D46A  BYTSEC           0200  
+DISK             D166  RELR             001E  BATMSK           00FF  ADDR             D172  
+FUN28            D146  FSZBL            0014  FUN04            D116  WRREC            D55E  
+POPREG           2D40  _SETDMA          D1C0  CALL             2D80  CDFUNC           D1B0  
+R6               0006  RSVDSEC          0001  MAKFIL           D382  CLOSEB           D22E  
+FUN10            D122  RECTBC           D4F4  MSEEK            F018  RDBAT            D5D0  
+FSZ              000E  RDRND            D2CA  BTTSC            D4FE  FSZBH            0012  
+BTTSC1           D506  SETREL           D340  WRERR            D57A  RDBAT2           D608  
+NXTBLK           D51A  RDBAT0           D5D8  NONTRY           D37E  RDBAT1           D5E6  
+FUN19            D134  ERA00            D450  WRSEQ            D230  MRECAL           F014  
+FUN35            D154  CRNTBC           D4F0  BUFSIZ           0200  CBO              D16C  
+BATSF            0008  NXTBLK3          D536  NAM              0000  RECTBC1          D4FC  
+MCONOUT          F00C  SEARCH1          D316  SECDSK           0B40  FUN07            D11C  
+FCLOSE           D206  FUN17            D130  R0               0000  FUN27            D144  
+R5               0005  FUN37            D158  FUN30            D14A  MSELDSK          F010  
+RDCMD            0001  NTHR             D3A0  CBSECT           D16E  SECTRK           0012  
+PUSHREG          2D00  DIRTRK           0000  FUN39            D15C  BATTRK           0000  
+WRSEQ1           D292  FOPEN            D1C6  PUSH             2E00  ERAFIL           D40E  
+ERA01            D454  FBATSEC          0002  FUN24            D13E  NDSECT           0004  
+RDSEQ1           D2C6  FUN03            D114  TRKDSK           0050  FUN13            D128  
+COUT             D18A  FUN23            D13C  CCMD             D17C  FUN33            D150  
+FUN08            D11E  DIRENT           D170  FCLOSE1          D220  DSKFUN           D1A6  
+R4               0004  OPENA            D202  RENAM1           D402  TRACK            D176  
+MWRREC           F020  NAMSIZ           000B  FUN15            D12C  
+
