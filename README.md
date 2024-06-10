@@ -4,7 +4,7 @@ This is a minimal Disk Operating System for the TMS9900 based on CP/M Interfaces
 This is a BDOS for the TMS9900 based on CP/M it does not implement the full function set but is very suitable for small systems and works
 very well with the TMS9900 Small C compiler in the repository.  It makes use of the MONITOR programme for its basic IO and Disc functions.
 
-It uses standard IBM Double Density 3.5" Disc but could easily be ported to a Flash Drive etc.
+The board initally used a 3.5" Floppy Disc Controller (FDC) for version 2 of the software, but this has now be superseded with Version 3 of the software that supports an Solid State Drive using an IDE/SATA interface.
 
 BDOS supports the following function at the moment:
 
