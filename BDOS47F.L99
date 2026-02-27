@@ -62,7 +62,7 @@
                         ;
                         ; OPERATING SYSTEM EQUATES
                         ;
-  F000                  MONITOR	EQU	0F000H
+  F000                  MONITOR:	EQU	0F000H
                         
   D100                  BDOS:	EQU	0D100H
                         ;
@@ -175,7 +175,24 @@
   F024                  MWRREC	EQU	MONITOR+9*4	;WRITE A STANDARD RECORD
   F038                  MRDDBR	EQU	MONITOR+14*4	;READ A STANDARD DIRECTORY/BAT RECORD
   F03C                  MWRDBR	EQU	MONITOR+15*4	;WRITE A STANDARD DIRECTORY RECORD
-                        
+       
+       
+         F008   0460 F21A      BOOT_ADDR:	B	@MBOOT		;PERFORM A COLD BOOT - POS IN TABLE HELPS DEBUGGING
+  F00C   0460 F27A      	B	@MCIN		;CHAR IN
+  F010   0460 F27E      	B	@MCOUT		;CHAR OUT
+  F014   0460 F286      	B	@MSELDSK		;SELECT A DISK DRIVE
+  F018   0460 F28C      	B	@MRECAL	 	;RECALIBRATE DRIVES
+  F01C   0460 F59C      	B	@MSEEK		;SEEK THE TRACK IN R3
+  F020   0460 F290      	B	@MRDREC		;READ SELECTED SECTOR
+  F024   0460 F2A0      	B	@MWRREC	 	;WRITE SELECTED SECTOR
+  F028   0460 F28E      	B	@MRDID		;READ TRACK ID ADDRESS
+  F02C   0460 F218      	B	@MWBOOT		;PERFORM A WARM BOOT
+  F030   0460 F29C      	B	@MRDTRK		;READ A TRACK OF DATA
+  F034   0460 F29E      	B	@MWRTRK		;WRITE A TRACK OF DATA
+  F038   0460 F296      	B	@MRDDBR		;READ A STANDARD DIRECTORY/BAT RECORD
+  F03C   0460 F2A6      	B	@MWRDBR		;WRITE A STANDARD DIRECTORY/BAT RECORD
+      
+                       
                         ;
                         ;************************************************************************************************************
                         ;
@@ -217,7 +234,7 @@
                         ;	[LBA0][LBA2][LBA4][LBA6][LBA8][LBA10][LBA12][LBA14]<-------FILES BEGIN AT BLOCK 2
                         ;	[BOOT][BAT1][BAT2][BAT3][DIR1][DIR2 ][DIR3 ][DIR4 ][REC1BLK2,REC2BLK2,RECS3BLK2,REC4BLK2][REC1BLCK3...ETC]
                         ;	<-------BLOCK 0--------><--------BLOCK 1----------><-----------BLOCK 2------------------>
-                        ;
+                        ;               
                         ;	EACH BLOCK IS 4 SECTORS OR or 4 x 512 = 2048 Bytes - we can call see the similarity of blocks to pages
                         ;
                         ;	BLOCK ALLOCATION TABLE [BAT] SECTORS ARE INITIALISED TO 0, THUS AVAILABLE BLOCKS ARE INDICATED BY THE VALUE OF 0000H.
@@ -1336,8 +1353,6 @@
                         
   D5E4   C041           WRREC_X	MOV	R1,R1
   D5E6   2DC0           	RET
-                        
-                        
                         ;******************************
                         ;
                         ;	WRITE A DIRECTORY BAT RECORD
