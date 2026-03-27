@@ -28,6 +28,8 @@
                         ;
                         	DXOP	FAR_REF,0
                         	DXOP	RETF,1
+                        ;	DXOP	SETREG,2
+                        	DXOP	CALL_FAR,3
                         	DXOP	PUSHREG,4
                         	DXOP	POPREG,5
                         ;	DXOP	SETSREG,2
@@ -345,10 +347,10 @@
                         ;
                         ;LONG DISTANCE COMMANDS
                         ;
-  0780                  LDS:	EQU	0780H	;        Long Distance Source instruction operand.
-  07C0                  LDD:	EQU	07C0H	;        Long Distance Destination instruction operand.
-                        ;LDS	EQU	1000H
-                        ;LDD	EQU	1000H
+                        ;LDS:	EQU	0780H	;        Long Distance Source instruction operand.
+                        ;LDD:	EQU	07C0H	;        Long Distance Destination instruction operand.
+  1000                  LDS	EQU	1000H
+  1000                  LDD	EQU	1000H
                         ;
                         ;******************************
                         ;
@@ -456,11 +458,11 @@
   80C0                  MEMBASE:	EQU	80C0H
   D1CC   2DA0 D230      MLOAD:	CALL	@GETMLT
                         
-  D1D0   0780           	LDS
+  D1D0   1000           	LDS
   D1D2   D028 0022      	MOVB	@MPAGE(R8),R0		;THIS IS MEMORY PAGE
-  D1D6   0780           	LDS
+  D1D6   1000           	LDS
   D1D8   D068 0021      	MOVB	@NMSECT(R8),R1		;NUMBER OF RECORDS IN THIS MODULE
-  D1DC   0780           	LDS
+  D1DC   1000           	LDS
   D1DE   C0A8 0010      	MOV	@FLA(R8),R2		;FLA OF ZERO IS DEFAULT. THIS IS THE LOAD ADDRESS FOR THE MODULE
                         
                         ;
@@ -496,7 +498,7 @@
   D1FA   0222 000B      	AI	R2,NAMSIZ		;R2 -> DIRECTORY ENTRY
   D1FE   0200 0015      	LI	R0,DIRSIZ-NAMSIZ	;NO OF BYTES TO TRANSFER
                         
-  D202   07C0           OPENA:	LDD
+  D202   1000           OPENA:	LDD
   D204   DC72           	MOVB	*R2+,*R1+		;TRANSFER ENTRIES
   D206   0600           	DEC	R0
   D208   16FC           	JNE	OPENA
@@ -505,15 +507,15 @@
                         ;
                         
   D20A   04C1           OPENENT:	CLR	R1
-  D20C   07C0            	LDD
+  D20C   1000            	LDD
   D20E   CA01 0018       	MOV	R1,@CBN(R8)		;ZERO CURRENT BLOCK FIELD
-  D212   07C0            	LDD
+  D212   1000            	LDD
   D214   CA01 001E      	MOV	R1,@RELR(R8)
-  D218   07C0           	LDD
+  D218   1000           	LDD
   D21A   CA01 001C      	MOV	R1,@RELB(R8)
-  D21E   07C0           	LDD
+  D21E   1000           	LDD
   D220   CA01 0014      	MOV	R1,@LRBL(R8)
-  D224   07C0           	LDD
+  D224   1000           	LDD
   D226   CA01 001A      	MOV	R1,@CRN(R8)
                         ;	SETO	@MLBUF		;INVALIDATE MLBUF SO IT IS NOT REUSED FROM A PREVIOUS OPEN
   D22A   2DC0           	RET
@@ -561,7 +563,7 @@
                         ;
   D230   04C0           GETMLT:	CLR	R0
                         
-  D232   07C0           	LDD
+  D232   1000           	LDD
   D234   DA00 0020      	MOVB	R0,@CMLTI(R8)		;SET CLMTI TO ZERO
   D238   0203 DB28      	LI	R3,MLBUF
   D23C   C803 D17E      	MOV	R3,@DMAADDR		;SET DMA ADDRESS FOR MLBUF
@@ -572,11 +574,11 @@
                         ;
   D246   0201 DB28      	LI	R1,MLBUF		;POINT TO THE MODULE INDEX BUFFER
                         
-  D24A   07C0           	LDD
+  D24A   1000           	LDD
   D24C   DA31 0022      	MOVB	*R1+,@MPAGE(R8)		;THIS IS MEMORY PAGE
-  D250   07C0           	LDD
+  D250   1000           	LDD
   D252   DA31 0021      	MOVB	*R1+,@NMSECT(R8)	;NUMBER OF RECORDS IN THIS MODULE
-  D256   07C0           	LDD
+  D256   1000           	LDD
   D258   CA11 0010      	MOV	*R1,@FLA(R8)		;FLA OF ZERO IS DEFAULT. THIS IS THE LOAD ADDRESS FOR THE MODULE
   D25C   04C1           	CLR	R1
   D25E   2DC0           	RET
@@ -584,7 +586,7 @@
                         ; WE NEED TO ZERO IT AS THIS IS THE DEFAULT FOR A SINGLE MODULE
                         ;
   D260   04C0           MAKEMLT:	CLR	R0
-  D262   07C0           	LDD
+  D262   1000           	LDD
   D264   DA00 0020      	MOVB	R0,@CMLTI(R8)		;SET CLMTI TO ZERO
   D268   0220 0200      	AI	R0, BYTSEC
   D26C   0201 DB28      	LI	R1,MLBUF
@@ -627,7 +629,7 @@
   D29C   0200 0015      	LI	R0,DIRSIZ-NAMSIZ
                         
                         FCLOSE1: 	;FAR_REF
-  D2A0   0780           FC2	LDS
+  D2A0   1000           FC2	LDS
   D2A2   DCB1           	MOVB	*R1+,*R2+		;UPDATE DIRECTORY ENTRY
   D2A4   0600           	DEC	R0
   D2A6   16FC           	JNE	FC2
@@ -636,7 +638,7 @@
                         ;
                         
   D2A8   2DA0 D706      	CALL	@WRDIR		;UPDATE THE DIRECTORY ENTRY
-  D2AC   0780           	LDS
+  D2AC   1000           	LDS
   D2AE   C068 000E      	MOV	@FSZ(R8),R1		;CAN'T RECLAIM IF FILE IS ZERO SIZE
   D2B2   1302           	JEQ	CLOSEB
   D2B4   2DA0 D578      	CALL	@RECLAIM		;TRY TO RECLAIM UNUSED BLOCKS
@@ -658,8 +660,7 @@
                         ;
                         ;*****************************************************
                         ;
-                        WRSEQ:	;WHEX	R3
-  D2BA   C203           	MOV	R3,R8		;SAVE FCB POINTER
+  D2BA   C203           WRSEQ:	MOV	R3,R8		;SAVE FCB POINTER
   D2BC   2DA0 D60C      	CALL	@CRNTBC	 	;CRN TO RELATIVE BLOCK & REMAINDER
   D2C0   C803 D176      	MOV	R3,@CBO		;SAVE OFFSET
                         ;
@@ -699,26 +700,19 @@
   D2F2   C806 D172      	MOV	R6,@CAB		;UPDATED FROM NXTBLK
   D2F6   0720 D724      	SETO	@BATCHG		;FORCE AN UPDATE TO THE BAT
                         ;	
-                        WRSEQ0	;LI	R0,1
-                        	;WHEX	R0
-  D2FA   C0A0 D172      	MOV	@CAB,R2		;RECOVER DISK BLOCK
+  D2FA   C0A0 D172      WRSEQ0	MOV	@CAB,R2		;RECOVER DISK BLOCK
   D2FE   C0E0 D176      	MOV	@CBO,R3		;AND OFFSET
   D302   0200 0002      	LI	R0,WRCMD
   D306   C800 D182      	MOV	R0,@CCMD		;CURRENT COMMAND
                         
   D30A   2DA0 D38C      	CALL	@RWREC
-                        	;LI	R0,2
-                        	;WHEX	R0
   D30E   C041           	MOV	R1,R1		;WAS THERE AN ERROR
   D310   1107           	JLT	WRSEQ2		;JUMP IF YES
                         
-                        
-  D312   0780           	LDS
+  D312   1000           	LDS
   D314   05A8 000E      	INC	@FSZ(R8) 		;BUMP THE SECTOR COUNT
-  D318   0780           	LDS
+  D318   1000           	LDS
   D31A   05A8 001A      	INC	@CRN(R8) 		;BUMP CURRENT RECORD
-                        	;LI	R0,3
-                        	;WHEX	R0
                         
   D31E   04C1           WRSEQ1	CLR	R1
   D320   2DC0           WRSEQ2	RET
@@ -733,8 +727,8 @@
                         ;=================================================================================
                         ;
   D322   C203           RDSEQ:	MOV	R3,R8		;COPY FCB ADDRESS OF FCB
-  D324   0780           	LDS
-  D326   07C0           	LDD
+  D324   1000           	LDS
+  D326   1000           	LDD
   D328   8A28 001A      	C	@CRN(R8),@FSZ(R8)	;END OF FILE ?
   D32C   000E           
   D32E   1415           	JHE	RDSEQ1		;YES
@@ -749,7 +743,7 @@
                         ; R8 HOLDS FCB
                         ;
   D34C   2DA0 D38C      	CALL	@RWREC
-  D350   0780           	LDS
+  D350   1000           	LDS
   D352   05A8 001A      	INC	@CRN(R8)		;BUMP TO NEXT RECORD
   D356   04C1           	CLR	R1
   D358   2DC0           	RET
@@ -764,16 +758,16 @@
                         ;
                         ;********************************
                         ;
-  D35E   0780           RDRND:	LDS
-  D360   07C0           	LDD
+  D35E   1000           RDRND:	LDS
+  D360   1000           	LDD
   D362   C8E3 001C      	MOV	@RELB(R3),@CBN(R3)	;TRANSER RECORD NUMBER
   D366   0018           
-  D368   0780           	LDS
-  D36A   07C0           	LDD
+  D368   1000           	LDS
+  D36A   1000           	LDD
   D36C   C8E3 001E          	MOV	@RELR(R3),@CRN(R3)
   D370   001A           
   D372   2DA0 D322      	CALL	@RDSEQ
-  D376   0780           	LDS
+  D376   1000           	LDS
   D378   0628 001A      	DEC	@CRN(R8)		;READ RANDOM CAN'T INCREMENT THE CRN
   D37C   2DC0           	RET
                         ;
@@ -869,8 +863,8 @@
   D3CA   C041           	MOV	R1,R1		;SUCCESSFUL OPEN ?
   D3CC   1105           	JLT	GETSIZ1
                         
-  D3CE   0780           	LDS
-  D3D0   07C0           	LDD
+  D3CE   1000           	LDS
+  D3D0   1000           	LDD
   D3D2   CA28 000E      	MOV	@FSZ(R8),@RELR(R8)	;TRANSFER THE FILE SIZE
   D3D6   001E           
   D3D8   2DC0           GETSIZ1:	RET
@@ -887,12 +881,12 @@
                         ;
                         ;---------------------------------------------------
                         ;
-  D3DA   0780           SETREL:	LDS
-  D3DC   07C0           	LDD
+  D3DA   1000           SETREL:	LDS
+  D3DC   1000           	LDD
   D3DE   C8E3 0018      	MOV	@CBN(R3),@RELB(R3)	;TRANSFER RECORD POINTERS
   D3E2   001C           
-  D3E4   0780           	LDS
-  D3E6   07C0           	LDD
+  D3E4   1000           	LDS
+  D3E6   1000           	LDD
   D3E8   C8E3 001A      	MOV	@CRN(R3),@RELR(R3)
   D3EC   001E           
   D3EE   2DC0           	RET
@@ -925,13 +919,13 @@
   D412   C148           	MOV	R8,R5	;SAVE FCB PNTR
                         
                         NXTLTR	;FAR_REF
-  D414   0780           	LDS
+  D414   1000           	LDS
   D416   9815 D16E      	CB	*R5,@WILD	;? WILL MATCH ALL (LIKE CPM)
   D41A   1603           	JNE	DLOOK5	;PROCESS NORMALLY
   D41C   0585           	INC	R5	;ELSE ASSUME MATCH SO BUMP POINTERS
   D41E   0582           	INC	R2
   D420   1003           	JMP	DLOOK6
-  D422   07C0           DLOOK5	LDD
+  D422   1000           DLOOK5	LDD
   D424   9D72           	CB	*R2+,*R5+	;MATCH ?
   D426   16EA           	JNE	DLOOK	 ;NO SO - KEEP LOOKING
   D428   0600           DLOOK6	DEC	R0	
@@ -994,11 +988,11 @@
   D464   0202 0015      	LI	R2,DIRSIZ-NAMSIZ 	;NUMBER OF BYTES TO ZERO - OMMIT FTY
                         
                         ;	;FAR_REF
-  D468   07C0           MKFIL2	LDD
+  D468   1000           MKFIL2	LDD
   D46A   DD40           	MOVB	R0,*R5+		;ZERO AFTER FILENAME
   D46C   0602           	DEC	R2
   D46E   16FC           	JNE	MKFIL2
-  D470   07C0           	LDD
+  D470   1000           	LDD
   D472   CA20 D172      	MOV	@CAB,@FSB(R8)		;TRANSFER FSB
   D476   000C           
   D478   0201 FF80      	LI	R1,LASTBLK		;MARK AS FIRST AND LAST BLOCK IN BAT
@@ -1017,7 +1011,7 @@
   D48A   C148           	MOV	R8,R5	 	;SAVE FCB POINTER
                         
                         	;FAR_REF
-  D48C   0780           MKFIL1	LDS
+  D48C   1000           MKFIL1	LDS
   D48E   DCF5           	MOVB	*R5+,*R3+		;TRANSER FCB ENTRY TO DIRECTRY RECORD
   D490   0602           	DEC	R2
   D492   16FC           	JNE	MKFIL1
@@ -1156,7 +1150,7 @@
   D552   1131           	JLT	ERAERR	 	;NO
   D554   0201 8000      	LI	R1,8000H		;R3->DIR ENTRY
   D558   F8C1 0000      	SOCB	R1,@NAM(R3)		;MAKE DELETED
-  D55C   07C0           	LDD
+  D55C   1000           	LDD
   D55E   CA23 000C      	MOV	@FSB(R3),@FSB(R8)	;NB RECOVER BAT POINTER
   D562   000C           
   D564   064A           	DECT	SP
@@ -1164,7 +1158,7 @@
   D56A   2DA0 D706      	CALL	@WRDIR	 	;WRITE FDE BACK TO DISK
   D56E   C07A           	MOV	*SP+,R1		;ZERO ?
   D570   1320           	JEQ	ERA03
-  D572   0780           	LDS
+  D572   1000           	LDS
   D574   04E8 000E      	CLR	@FSZ(R8)		;FORCE RE-ALLOCATION OF USED BLOCK
                         
                         ;
@@ -1174,7 +1168,7 @@
   D578   04C3           	CLR	R3		;START AT FIRST BAT SECTOR
   D57A   2DA0 D68E      	CALL	@GETBATP 		;READ IN THE BAT TABLE
                         
-  D57E   0780           	LDS
+  D57E   1000           	LDS
   D580   C0E8 000E      	MOV	@FSZ(R8),R3		;GET FILE SIZE FOR AND
   D584   2DA0 D612      	CALL	@RECTBC		;CONVERT FILE SIZE TO BLOCKS
                         
@@ -1184,7 +1178,7 @@
   D590   C0D7           	MOV	*R7,R3		;RECOVER BAT INDEX
   D592   C5C1           	MOV	R1,*R7		;ASSUME LAST LINK ENTRY
                         
-  D594   0780           	LDS
+  D594   1000           	LDS
   D596   C028 000E      	MOV	@FSZ(R8),R0		;ZERO FILE SIZE IE RECLAIM ALL BLOCKS?
   D59A   1601           	JNE	ERA00		;NO
   D59C   04D7           	CLR	*R7		;YES SO ZERO LAST LINK
@@ -1265,7 +1259,7 @@
                         ;
                         ;*******************************
                         ;
-  D60C   0780           CRNTBC:	LDS
+  D60C   1000           CRNTBC:	LDS
                         
   D60E   C0E8 001A      	MOV	@CRN(R8),R3 	;NEXT RECORD TO READ
                         ;
@@ -1455,7 +1449,7 @@
                         ;*
                         ;**************************************************
                         ;
-  D660   0780           TRACE:	LDS
+  D660   1000           TRACE:	LDS
   D662   C0E8 000C      	MOV	@FSB(R8),R3		;GET FIRST FILE BLOCK - THIS IS THE START OF THE LINK
                         
   D666   04C1           	CLR	R1		;COUNTER
@@ -1619,67 +1613,67 @@
   DB2A                  	END
 
 No error(s).
-GETSIZ           D3C4  SECBLK           0004  LRBL             0014  DIRBLK           D5D4  
-EXE              0002  FUN01            D11A  WILD             D16E  FUN11            D12E  
-ALLONES          D16F  FUN21            D142  PUSH             2E00  FUN31            D156  
-FTY              000B  FINAL_LBA        0010  DCONIO           D1A2  SP               000A  
-R10              000A  DLOOK            D3FC  NAM              0000  WRCMD            0002  
-CMLTI            0020  NAMEOFF2         0012  WRBAT            D6E4  FAR_REF          2C00  
-RENAM2           D548  BATCHG           D724  WRRND            D37E  DLOOK4           D40E  
-RENAME           D528  DLOOK5           D422  ERAERR           D5B6  DLOOK6           D428  
-ERA01            D5A2  EXTSIZ           0003  DISK             D170  FSB              000C  
-NXTBLK4          D634  TRACE            D660  SEARCH2          D3BC  PRINTFCB         D50C  
-FUN18            D13C  MMLTA            D270  FUN38            D164  GETBATP          D68E  
-TXT              0003  WRD_X            D720  MCONIN           F00C  LASTBLK          FF80  
-FUN14            D134  TRACE1           D668  FUN34            D15C  TRACE2           D680  
-R0               0000  BDOS0            D184  CALL             2D80  TRACE3           D684  
-R4               0004  MWBOOT           F02C  R6               0006  DBG_DLOOK1       D3F0  
-R5               0005  DMAFUN           D1BC  R8               0008  MONITOR          F000  
-RDSEQ            D322  ERA03            D5B2  FUN00            D118  MRDREC           F020  
-FUN20            D140  BAS              0004  FUN40            D168  RDREC            D63C  
-PFCB1            D512  MAKEMLT          D260  MWRDBR           F03C  MON_PTR          0086  
-STORETYPE        D4FC  RDREC1           D64A  POP              2E40  RWREC            D38C  
-FLA              0010  CBN              0018  RDCMD            0001  MEMBASE          80C0  
-OPENE            D22C  GETTYPE          D4B6  WRREC_X          D65C  CHRM             D4B2  
-CDSECT           D180  CIN              D19A  OPENA            D202  CHRS             D4B3  
-MLBUF            DB28  CHRT             D4B1  NXTBLK           D61C  FC2              D2A0  
-ERA02            D5AE  CRN              001A  RECLAIM          D578  NXTBLK2          D620  
-BAT_LBA          0002  RWREC_R          D3A8  DIR_LBA          0008  FUN06            D124  
-FUN09            D12A  FUN16            D138  FUN29            D152  FUN26            D14C  
-INTBUFF          DB28  FUN36            D160  LDD              07C0  GETMLT           D230  
-WRSEQ            D2BA  RET              2DC0  FUN05            D122  BDOS             D100  
-FUN25            D14A  BATBUFF          D728  NBATS            0001  FUN02            D11C  
-WRSEQ2           D320  FUN12            D130  BUFSIZ           0200  FUN22            D144  
-CCMD             D182  FUN32            D158  PRINTCMDL        D51A  DIRBUFF          D928  
-EXIT             D16A  RETF             2C40  BOOT_LBA         0000  MKFIL1           D48C  
-BLK2_LBA         0012  MKFIL2           D468  WRADDR           D17C  DIRB01           D602  
-WRB_X            D6FE  DIRB02           D604  WRDIR            D706  DIRB03           D608  
-LBASECT          0001  DIRSIZ           0020  CBP              D174  CAB              D172  
-BATMSK           00FF  OPENENT          D20A  FUN28            D150  RELB             001C  
-FCLOSE           D286  BYTSEC           0200  FUN24            D148  RELR             001E  
-R1               0001  DB_GETEX         D504  R2               0002  WRREC            D64E  
-R9               0009  _SETDMA          D1C6  RDSEQ1           D35A  CDFUNC           D1B6  
-FUN30            D154  RSVDSEC          0001  FDIRRN           0004  CLOSEB           D2B8  
-FCLOSE1          D2A0  RECTBC           D612  EXT_TAB          D4A8  MPAGE            0022  
-LOCAL_BDOS       D10A  LONG_BDOS        D102  MRDID            F028  RDBAT            D6AE  
-WHEX             2E80  RDRND            D35E  PUSHREG          2D00  RDBAT0           D6B6  
-MAKERR           D4A4  SETREL           D3DA  FUN19            D13E  RDBAT2           D6E0  
-DEBUG            2FC0  RDBAT1           D6C6  COM              0001  ERA00            D59E  
-FUN35            D15E  TRYTXT           D4E8  WRSEQ0           D2FA  MRECAL           F018  
-DMAADDR          D17E  MRDDBR           F038  LDS              0780  CRNTBC           D60C  
-GETSIZ1          D3D8  CBO              D176  RENAM1           D53E  NXTBLK3          D638  
-MCNT             D726  RECTBC1          D61A  FUN08            D128  SEARCH1          D3AC  
-FUN04            D120  FUN07            D126  R3               0003  FUN17            D13A  
-MAKFIL           D434  FUN27            D14E  MSEEK            F01C  FUN37            D162  
-FSZ              000E  MSELDSK          F014  CBSECT           D178  NTHR             D452  
-TRYBAS           D4D4  SECTRK           0012  COUT             D190  DIRTRK           0000  
-HALT             10FF  BATTRK           0000  WRSEQ1           D31E  FOPEN            D1E8  
-BATSF            0008  DLOOKEX          D432  NSIDES           0002  ERAFIL           D54A  
-FBAT0            D69E  FBATSEC          0002  POPREG           2D40  MLOAD            D1CC  
-FUN10            D12C  NDSECT           0004  NXTLTR           D414  FUN03            D11E  
-NONTRY           D430  FUN13            D132  FUN15            D136  FUN23            D146  
-PRO              0005  FUN33            D15A  EXT_END          D4B4  DIRENT           D17A  
-PFCL1            D520  NMSECT           0021  MCONOUT          F010  R7               0007  
-MINUS1           FFFF  DIROPN           D5BA  DSKFUN           D1AC  MWRREC           F024  
-NAMSIZ           000B  FUN39            D166  
+GETSIZ           D3C4  PRINTCMDL        D51A  LRBL             0014  SECBLK           0004  
+EXE              0002  DIRBLK           D5D4  WILD             D16E  FUN01            D11A  
+ALLONES          D16F  FUN11            D12E  PUSH             2E00  FUN21            D142  
+FTY              000B  FUN31            D156  DCONIO           D1A2  FINAL_LBA        0010  
+R10              000A  SP               000A  NAM              0000  DLOOK            D3FC  
+CMLTI            0020  WRCMD            0002  WRBAT            D6E4  NAMEOFF2         0012  
+RENAM2           D548  FAR_REF          2C00  WRRND            D37E  BATCHG           D724  
+RENAME           D528  DLOOK4           D40E  ERAERR           D5B6  DLOOK5           D422  
+ERA01            D5A2  DLOOK6           D428  DISK             D170  EXTSIZ           0003  
+NXTBLK4          D634  FSB              000C  SEARCH2          D3BC  TRACE            D660  
+FUN18            D13C  PRINTFCB         D50C  FUN38            D164  MMLTA            D270  
+TXT              0003  GETBATP          D68E  MCONIN           F00C  WRD_X            D720  
+FUN14            D134  LASTBLK          FF80  FUN34            D15C  TRACE1           D668  
+R0               0000  TRACE2           D680  CALL             2D80  BDOS0            D184  
+R4               0004  TRACE3           D684  R6               0006  MWBOOT           F02C  
+R5               0005  DBG_DLOOK1       D3F0  R8               0008  DMAFUN           D1BC  
+RDSEQ            D322  MONITOR          F000  FUN00            D118  ERA03            D5B2  
+FUN20            D140  MRDREC           F020  FUN40            D168  BAS              0004  
+PFCB1            D512  RDREC            D63C  MWRDBR           F03C  MAKEMLT          D260  
+STORETYPE        D4FC  MON_PTR          0086  POP              2E40  RDREC1           D64A  
+FLA              0010  RWREC            D38C  RDCMD            0001  CBN              0018  
+CALL_FAR         2CC0  MEMBASE          80C0  LOCAL_BDOS       D10A  GETTYPE          D4B6  
+CBSECT           D178  CHRM             D4B2  MRDID            F028  CIN              D19A  
+MINUS1           FFFF  CHRS             D4B3  WHEX             2E80  CHRT             D4B1  
+TRYBAS           D4D4  FC2              D2A0  PUSHREG          2D00  CRN              001A  
+NONTRY           D430  NXTBLK2          D620  MAKERR           D4A4  RWREC_R          D3A8  
+COUT             D190  FUN06            D124  FUN19            D13E  FUN16            D138  
+FUN39            D166  FUN26            D14C  DEBUG            2FC0  FUN36            D160  
+HALT             10FF  GETMLT           D230  COM              0001  RET              2DC0  
+FUN15            D136  BDOS             D100  FUN35            D15E  BATBUFF          D728  
+WRSEQ1           D31E  FUN02            D11C  WRSEQ0           D2FA  FUN12            D130  
+DIROPN           D5BA  FUN22            D144  DMAADDR          D17E  FUN32            D158  
+EXIT             D16A  DIRBUFF          D928  BOOT_LBA         0000  RETF             2C40  
+BLK2_LBA         0012  MKFIL1           D48C  WRADDR           D17C  MKFIL2           D468  
+WRB_X            D6FE  DIRB01           D602  WRDIR            D706  DIRB02           D604  
+LBASECT          0001  DIRB03           D608  CBP              D174  DIRSIZ           0020  
+BATMSK           00FF  CAB              D172  FUN28            D150  OPENENT          D20A  
+FCLOSE           D286  RELB             001C  FUN24            D148  BYTSEC           0200  
+R1               0001  RELR             001E  R2               0002  DB_GETEX         D504  
+R9               0009  WRREC            D64E  RDSEQ1           D35A  _SETDMA          D1C6  
+FUN30            D154  CDFUNC           D1B6  FDIRRN           0004  RSVDSEC          0001  
+FCLOSE1          D2A0  CLOSEB           D2B8  EXT_TAB          D4A8  RECTBC           D612  
+OPENE            D22C  MPAGE            0022  CDSECT           D180  LONG_BDOS        D102  
+MLBUF            DB28  RDBAT            D6AE  ERA02            D5AE  RDRND            D35E  
+BAT_LBA          0002  RDBAT0           D6B6  FUN09            D12A  SETREL           D3DA  
+INTBUFF          DB28  RDBAT2           D6E0  WRSEQ            D2BA  RDBAT1           D6C6  
+FUN25            D14A  ERA00            D59E  WRSEQ2           D320  TRYTXT           D4E8  
+CCMD             D182  MRECAL           F018  LDS              1000  MRDDBR           F038  
+GETSIZ1          D3D8  CRNTBC           D60C  RENAM1           D53E  CBO              D176  
+MCNT             D726  NXTBLK3          D638  FUN08            D128  RECTBC1          D61A  
+FUN04            D120  SEARCH1          D3AC  R3               0003  FUN07            D126  
+MAKFIL           D434  FUN17            D13A  MSEEK            F01C  FUN27            D14E  
+FSZ              000E  FUN37            D162  WRREC_X          D65C  MSELDSK          F014  
+NXTBLK           D61C  NTHR             D452  DIR_LBA          0008  SECTRK           0012  
+LDD              1000  DIRTRK           0000  NBATS            0001  BATTRK           0000  
+BATSF            0008  FOPEN            D1E8  NSIDES           0002  DLOOKEX          D432  
+FBAT0            D69E  ERAFIL           D54A  POPREG           2D40  FBATSEC          0002  
+FUN10            D12C  MLOAD            D1CC  NXTLTR           D414  NDSECT           0004  
+RECLAIM          D578  FUN03            D11E  FUN05            D122  FUN13            D132  
+PRO              0005  FUN23            D146  EXT_END          D4B4  FUN33            D15A  
+PFCL1            D520  DIRENT           D17A  FUN29            D152  NMSECT           0021  
+OPENA            D202  BUFSIZ           0200  R7               0007  DSKFUN           D1AC  
+MWRREC           F024  NAMSIZ           000B  MCONOUT          F010  
 
