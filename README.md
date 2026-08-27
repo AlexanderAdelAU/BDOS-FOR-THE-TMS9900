@@ -6,6 +6,8 @@ very well with the TMS9900 Small C compiler in the repository.  It makes use of 
 
 The board initally used a 3.5" Floppy Disc Controller (FDC) for version 2 of the software, but this has now be superseded with Version 3 of the software that supports an Solid State Drive using an IDE/SATA interface.
 
+BDTEST is a utility that will exercise BDOS and test all the file based function calls.
+
 BDOS supports the following function at the moment:
 
 ~~~
