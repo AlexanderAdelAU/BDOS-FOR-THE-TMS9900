@@ -7,8 +7,8 @@ This repository contains the BDOS 6.0 filesystem and associated system utilities
 The filesystem is explicitly designed around the hardware behaviors of the SBC V4, specifically its paged memory system.
 
 * **Processor:** Texas Instruments TMS99105.
-* **Memory Mapper:** 74LS610 SRAM.
-* **Addressing:** The 74LS610 is addressed via Memory-Mapped I/O at 0x80C0. The OS utilizes direct MOV instructions to program page registers, strictly avoiding LDCR/STCR CRU instructions.
+* **Memory Mapper:** Custom Memory Mapper using local 6116 Memory for page storage.
+* **Addressing:** The 6116 is addressed via Memory-Mapped I/O at 0x80C0. The OS utilizes direct MOV instructions to program page registers, strictly avoiding LDCR/STCR CRU instructions.
 * **XOP Interrupt Boundaries (Critical):** The SBC hardware automatically disables PSEL (Page Select) during an XOP interrupt (such as an XOP 6 BDOS call). Consequently, BDOS executes entirely within unmapped common memory (Segment F). User applications passing paged DMA addresses must ensure data integrity and proper segment alignment across the unmapped BDOS execution boundary.
 
 ## 2. Disk Geometry & Scaling
