@@ -48,7 +48,7 @@ HALT	EQU	10FFH
 
 ; --- OS MEMORY MAP ---
 MONITOR:	EQU	0F000H
-BDOS:		EQU	0E000H
+BDOS:	EQU	0E000H
 
 	AORG	BDOS
 
@@ -104,8 +104,8 @@ FUN37	WORD	EXIT
 FUN38	WORD	EXIT
 FUN39	WORD	EXIT
 FUN40	WORD	EXIT
-FUN41	WORD	MKDIR           ; 41: MAKE FOLDER
-FUN42	WORD	CHDIR           ; 42: CHANGE FOLDER
+FUN41	WORD	MKDIR			; 41: MAKE FOLDER
+FUN42	WORD	CHDIR			; 42: CHANGE FOLDER
 
 EXIT	SETO	R1			; Generic error exit (Return -1)
 	RET
@@ -175,6 +175,7 @@ WRCMD		EQU	2
 
 WILD		BYTE	'?'
 ALLONES		BYTE	-1
+SPACE		BYTE	' '
 	EVEN
 
 ; --- GLOBAL SYSTEM STATE VARIABLES ---
@@ -500,9 +501,20 @@ DLOOK:	CALL	@DIRBLK			; Fetch next 32-byte entry pointer into R3
 	JLT	DLOOK			; MSB Set (E5H) = Deleted entry. Skip.
 	JEQ	NONTRY_Z		; 00H = End of Directory. Stop searching.
 
-	; --- FOLDER ALIAS FILTER ---
-	MOVB	@FLD_ID(R2),R1		; Fetch this file's Folder ID byte
-	CB	R1,@CFLD		; Does it match our Current Folder?
+	; --- CLEVER FOLDER ALIAS FILTER ---
+	MOVB	@FLD_ID(R8),R0		; Fetch Target ID from User's FCB (R8)
+	CB	R0,@ALLONES		; Is it >FF (Empty/Uninitialized)?
+	JEQ	USE_CFLD
+	CB	R0,@SPACE		; Is it >20 (Space/Blank)?
+	JEQ	USE_CFLD
+	JMP	COMPARE_ID		; It is a specific ID (like 0 for Root), use it!
+
+USE_CFLD:
+	MOVB	@CFLD,R0		; Fallback to global active folder
+
+COMPARE_ID:
+	MOVB	@FLD_ID(R2),R1		; Fetch this file's Folder ID from disk
+	CB	R1,R0			; Does it match the target ID?
 	JNE	DLOOK			; If no, skip this file and keep searching
 	; ---------------------------
 
@@ -610,6 +622,7 @@ MKERR:	SETO	R1		; Alias table is full
 MKFOUND:MOV	R5,R0
 	NEG	R0
 	AI	R0,257		; Calculate Folder ID (1 to 255)
+	SWPB	R0		;Move ID to the MSB
 	MOVB	R0,*R4+		; Save ID byte
 	MOV	R3,R2
 	LI	R0,11
@@ -620,9 +633,9 @@ MK2:	MOVB	*R2+,*R4+	; Copy 11-byte name
 
 ;=====================================================================
 ; FUNCTION 42: CHANGE FOLDER (CHDIR)
-; R3 = Pointer to 11-byte Folder Name
 ;=====================================================================
 CHDIR:	MOV	R3,R2
+	CLR	R0			; <--- NEW: CLEAR REGISTER BEFORE MOVB
 	MOVB	*R2,R0
 	CI	R0,02000H	; Is the first character a space?
 	JNE	CH1_GO
@@ -630,6 +643,7 @@ CHDIR:	MOV	R3,R2
 	MOVB	R0,@CFLD	; If yes, return to Root (Folder 0)
 	CLR	R1
 	RET
+
 CH1_GO:	CALL	@LDFOLD
 	MOV	R1,R1
 	JLT	CHERR
